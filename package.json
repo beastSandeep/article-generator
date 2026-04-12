@@ -1,0 +1,17 @@
+{
+  "name": "article-latex-generator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Express app for extracting article data from DOCX files and generating LaTeX/PDF articles.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "mammoth": "^1.11.0",
+    "multer": "^2.0.2",
+    "qrcode": "^1.5.4"
+  }
+}

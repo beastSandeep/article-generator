@@ -1,0 +1,553 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[top=0.8in, bottom=0.8in, left=1cm, right=1cm]{geometry}
+
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{helvet}
+\usepackage{enumitem}
+\usepackage[colorlinks=true, linkcolor=blue, urlcolor=blue]{hyperref}
+
+\usepackage[utf8]{inputenc}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{hyperref}
+\usepackage{multicol}
+\usepackage{lipsum} % for dummy text, remove in final
+
+% \usepackage{showframe}
+
+\renewcommand{\familydefault}{\rmdefault}
+\setstretch{1.15}
+
+% ---------------- COLORS ----------------
+\definecolor{blue}{RGB}{0,0,200}
+\definecolor{lightgray}{RGB}{245,245,245}
+\definecolor{journalblue}{RGB}{0,31,95}
+\definecolor{journalred}{RGB}{255,0,0}
+\definecolor{journalorange}{RGB}{230,140,20}
+\definecolor{lightgray}{RGB}{220,220,220}
+
+% ---------------- HEADER ----------------
+\pagestyle{fancy}
+\fancyhf{}
+
+\setlength{\headheight}{20pt}   % smaller = tighter
+\setlength{\headsep}{10pt}
+
+\fancyhead[L]{%
+  \fontsize{9}{12}\selectfont\rmfamily%
+  \spaceskip=0.2em % adjust this number to tighten spacing
+  \textcolor{journalblue}{\textbf{\textit{Int.\ Jr.\ of Contemp.\ Res.\ in Multi.}}}%
+}
+
+
+
+\fancyhead[C]{%
+  \fontsize{9}{12}\selectfont\rmfamily%
+  \spaceskip=0.2em % match the left header spacing
+  \textcolor{journalred}{\textbf{\textit{PEER-REVIEWED JOURNAL}}}%
+}
+
+\fancyhead[R]{%
+  \fontsize{9}{12}\selectfont\rmfamily%
+  \spaceskip=0.2em%
+  \textcolor{journalblue}{\textbf{\textit{Volume 5 Issue 1 [ Jan-Feb ] Year 2026}}}%
+}
+
+\renewcommand{\headrulewidth}{0.8pt} % line bar
+\renewcommand{\headrule}{\hbox to\headwidth{\color{journalblue}\leaders\hrule height \headrulewidth\hfill}}
+
+% ---------------- FOOTER ----------------
+\fancyfoot[C]{%
+\begin{minipage}{\textwidth}
+    % Top horizontal line
+    \rule{\textwidth}{0.5pt}\\[3pt]
+
+    % Footer content: page number | vertical bar | license text
+    \begin{minipage}{0.05\textwidth}
+        \small \thepage
+    \end{minipage}%
+    \begin{minipage}{0.02\textwidth}
+        \centering
+        % Raise the bar so it touches the top line and is centered
+        \raisebox{0.5\height}{\textcolor{journalblue}{\textbar}}
+    \end{minipage}%
+    \begin{minipage}{0.9\textwidth}
+        \fontsize{7}{8}\selectfont
+        © 2026 Aseem Singh. This is an open-access article distributed under the terms of the Creative Commons Attribution 4.0 International License (CC BY-NC-ND).
+        \href{https://creativecommons.org/licenses/by/4.0/}{\textcolor{blue}{\texttt{https://creativecommons.org/licenses/by/4.0/}}}
+    \end{minipage}%
+\end{minipage}%
+}
+
+
+% ---------------- DOCUMENT ----------------
+\begin{document}
+
+% ---------------- BANNER ----------------
+\noindent
+\includegraphics[width=\textwidth]{banner3.png}
+
+\vspace{4pt}
+
+% ---------------- RESEARCH ARTICLE STRIP ----------------
+\noindent
+\colorbox{lightgray}{%
+    \parbox{\textwidth}{%
+        \vspace{2pt} % adjust vertical padding
+        %\centering % center the text
+        \fontsize{10}{10}\selectfont % smaller font size
+        \textcolor{journalblue}{\textbf{\textit{Research Article}}}%
+        \vspace{2pt}%
+    }%
+}
+
+% ---------------- TITLE ----------------
+\begin{center}
+    \fontsize{16}{20}\bfseries\textbf{%
+    The Vanishing Antagonist: Changing Forms of Conflict in Literary Fiction
+    }%
+\end{center}
+
+
+% ---------------- AUTHOR BLOCK ----------------
+\begin{center}
+{\fontsize{11}{13}\selectfont 
+\href{https://orcid.org/0000-0000-0000-0000}{\includegraphics[height=8pt]{orcid.png}}~
+\textbf{Aseem Singh}} \\[6pt]
+
+{\fontsize{10}{12}\selectfont
+Assistant Professor, Department of English, Panjab University Constituent College, NSW, Panjab, India
+}
+\end{center}
+
+% ---------------- CORRESPONDING + DOI ----------------
+\noindent
+\begin{minipage}[t]{0.6\textwidth}
+    \fontsize{10}{12}\selectfont
+    \textcolor{journalblue}{\textbf{Corresponding Author:}}
+     Aseem Singh
+    \href{https://orcid.org/0000-0000-0000-0000}{\includegraphics[height=8pt]{orcid.png}}
+
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.40\textwidth}
+    \fontsize{10}{12}\selectfont
+    \raggedleft\hspace{0pt}
+    \textcolor{journalblue}{\textbf{DOI:}}~
+    \href{https://doi.org/10.5281/zenodo.18159712}{doi:10.5281/zenodo.18159712}
+\end{minipage}
+
+\vspace{6pt}
+
+% ---------------- PERFECT TABLE WITH BORDERS ----------------
+
+\noindent
+\begin{tcolorbox}[
+    colback=white,
+    colframe=black!70,
+    boxrule=0.6pt,
+    arc=0pt,
+    left=0pt,
+    right=0pt,
+    top=0pt,
+    bottom=0pt,
+]
+
+\begin{minipage}[t]{0.64\textwidth}
+
+\fontsize{9}{11}\selectfont
+
+% HEADER
+\noindent
+\colorbox{lightgray}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\vspace{2pt}
+\textcolor{journalblue}{\textbf{Abstract}}
+\vspace{2pt}
+}}
+
+\vspace{4pt}
+
+Narrative conflict has traditionally depended on the presence of a clear antagonist—an 
+identifiable character whose opposition shapes plot, morality, and resolution. From classical 
+tragedy to nineteenth-century fiction, antagonists provided moral clarity by concentrating 
+responsibility for harm in a single figure. However, modern and contemporary literary fiction 
+increasingly departs from this model. Many texts no longer present villains who can be named 
+or defeated. Instead, antagonism is relocated to systems, institutions, social norms, and 
+technological structures. This paper argues that antagonists have not disappeared from literary 
+fiction but have undergone a structural transformation. Through readings of works by 
+Shakespeare, Hardy, Kafka, Ishiguro, Eggers, and Aravind Adiga, the paper shows that the 
+“vanishing antagonist” reflects changing experiences of power and responsibility in modern 
+life. 
+
+\end{minipage}
+\hfill
+% VERTICAL DIVIDER
+\vrule width 0.5pt
+\hfill
+\begin{minipage}[t]{0.34\textwidth}
+
+\fontsize{8.5}{10}\selectfont
+
+% HEADER
+\noindent
+\colorbox{lightgray}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\vspace{2pt}
+\centering \textcolor{journalblue}{\textbf{Manuscript Information}}
+\vspace{2pt}
+}}
+
+\begin{itemize}[leftmargin=*, itemsep=-4pt]
+\item \textbf{ISSN No:} 2583-7397
+\item \textbf{Received:} 13-11-2025
+\item \textbf{Accepted:} 29-12-2025
+\item \textbf{Published:} 06-01-2026
+\item \textbf{IJCRM:} 5(1); 2025: 01-03
+\item \textbf{©2026, All Rights Reserved}
+\item \textbf{Plagiarism Checked:} Yes
+\item \textbf{Peer Review Process:} Yes
+\end{itemize}
+
+\vspace{4pt}
+\hrule
+\vspace{4pt}
+
+\noindent
+\colorbox{lightgray}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\vspace{2pt}
+\centering \textcolor{journalblue}{\textbf{How to Cite this Article}}
+\vspace{2pt}
+}}
+
+\vspace{2pt}
+
+Singh A. The Vanishing Antagonist: Changing Forms of Conflict in Literary Fiction. Int J Contemp Res Multidiscip. 2026;5(1):01-03. 
+
+\vspace{4pt}
+\hrule
+\vspace{4pt}
+
+\centering
+\textcolor{journalblue}{\textbf{Access this Article Online}}
+
+\vspace{4pt}
+
+\includegraphics[width=0.4\linewidth]{qr.png}
+
+\vspace{2pt}
+
+{\fontsize{8}{9}\selectfont
+\textcolor{journalblue}{https://ijaicitjournal.com/}
+}
+
+\end{minipage}
+
+\end{tcolorbox}
+
+
+% ---------------- KEYWORDS ----------------
+
+\noindent
+\begin{minipage}[t]{1\textwidth}
+    \fontsize{10}{12}\selectfont
+    \textcolor{journalblue}{\textbf{KEYWORDS:}} 
+    antagonist, narrative conflict, systems, power, modern fiction.
+\end{minipage}
+
+
+% ---------------- INTRODUCTION ----------------
+\vspace{6pt}
+
+\noindent
+\textcolor{journalblue}{\textbf{INTRODUCTION}}
+
+\setlength{\columnsep}{20pt}
+\begin{multicols}{2}
+\fontsize{9}{11}\selectfont
+\noindent
+Conflict is central to narrative. Stories progress because 
+characters face resistance and opposition. Traditionally, this 
+opposition has been embodied in the figure of the antagonist—a 
+character who actively resists the protagonist and gives the 
+narrative moral direction. Antagonists make conflict visible and 
+ethically manageable. Readers can identify blame, judge actions, and expect closure through confrontation or punishment. In modern and contemporary literary fiction, this model is increasingly challenged. Many important texts no longer feature clear villains. Instead, characters struggle against impersonal forces such as bureaucracy, class systems, ideology, 
+or technology. Power appears faceless, and responsibility
+becomes difficult to locate. This shift reflects broader social 
+This paper examines this transformation through the concept of 
+the “vanishing antagonist.” It argues that antagonists have not 
+disappeared but have changed form. As power becomes 
+systemic rather than personal, literature adapts by representing 
+conflict in new ways. 
+
+\vspace{8pt}
+\noindent
+\textbf{The Antagonist and Narrative Conflict}
+
+\noindent
+In traditional storytelling, an antagonist is the force that opposes 
+the protagonist. Classical narrative theory assumes that this 
+force is best represented by a character with clear intention and 
+agency. Aristotle’s emphasis on action and causality assumes 
+identifiable agents behind events.
+
+\vspace{8pt}
+\noindent
+\textbf{Later narrative models continue this approach.}
+
+\noindent
+Vladimir Propp’s analysis of folktales formalised this tendency 
+by defining fixed roles such as hero and villain [2]. In this 
+structure, the antagonist is essential because it concentrates 
+conflict in a single figure. Moral judgment becomes 
+straightforward. 
+Modern narratology, however, complicates this view. Mieke 
+Bal argues that antagonistic forces need not be human 
+characters but can also be abstract systems or institutions [3]. 
+Shlomith Rimmon-Kenan similarly notes that conflict may arise 
+from social or ideological constraints rather than personal 
+opposition [4]. In such cases, responsibility is dispersed, and 
+moral clarity is reduced. 
+This shift prepares the ground for narratives in which 
+antagonism remains present but loses its personal form.
+
+\vspace{8pt}
+\noindent
+\textbf{Personalised Antagonism in Early Literature}
+
+\noindent
+For much of literary history, antagonism is clearly personalised. 
+Classical tragedy and early modern drama rely on villains 
+whose moral agency structures narrative conflict. Shakespeare’s 
+plays offer strong examples. Iago in Othello is a calculating and 
+intentional villain whose manipulation drives the plot. His 
+conscious malice allows readers to locate responsibility clearly 
+[5]. 
+Nineteenth-century realist fiction largely continues this 
+tradition. Victorian novels often locate social harm in 
+individuals who embody vice. Characters such as Uriah Heep 
+represent moral corruption that can be exposed and punished. 
+Thomas Hardy’s Tess of the d’Urbervilles complicates this 
+model. Alec d’Urberville functions as a recognisable 
+antagonist, concentrating sexual and patriarchal violence in one 
+figure [6]. Yet Hardy also highlights impersonal forces such as 
+poverty, rigid morality, and social judgment. Angel Clare’s 
+actions cause harm without villainous intent. The novel 
+suggests that individual antagonists alone cannot explain 
+suffering. 
+This period marks a transition: antagonists remain important, 
+but their explanatory power is increasingly questioned. 
+
+\vspace{8pt}
+\noindent
+\textbf{Kafka and the System as Antagonist}
+
+\noindent
+A decisive shift occurs in the early twentieth century, most 
+clearly in the work of Franz Kafka. In The Trial, conflict no 
+longer arises from an identifiable villain. Josef K. is arrested 
+2 
+changes in how authority and control operate in modern life [1]. 
+and prosecuted by an opaque bureaucratic system. He never 
+learns the charge against him and never confronts a clear 
+authority figure [7]. 
+Power in the novel operates through procedures and delays 
+rather than cruelty or intent. Officials appear powerless, and 
+responsibility is endlessly deferred. There is no antagonist to 
+defeat and no resolution to achieve. 
+Max Weber’s analysis of bureaucracy helps explain this 
+condition. Weber describes modern authority as impersonal and 
+rule-based, exercised through systems rather than individuals 
+[8]. Kafka’s fiction captures the psychological impact of such 
+power: confusion, anxiety, and helplessness. 
+Here, antagonism becomes structural. Conflict exists, but it 
+cannot be resolved through confrontation. 
+Normalisation and Moral Diffusion in Late Modern Fiction 
+Late twentieth-century fiction develops Kafka’s insight further 
+by showing how systems persist through normalisation rather 
+than force. Antagonism becomes embedded in everyday life 
+and sustained by acceptance. 
+Kazuo Ishiguro’s Never Let Me Go presents a society in which 
+human clones are raised for organ donation. The narrative tone 
+is calm and restrained. Teachers are kind, and no character 
+displays open cruelty [9]. The absence of a conventional villain 
+is what makes the novel disturbing. 
+The system survives because it is accepted. Characters 
+internalise their fate and rarely imagine resistance. Harm occurs 
+not through evil intent but through compliance. 
+This portrayal aligns with Hannah Arendt’s idea of the 
+“banality of evil,” which describes how immense harm can 
+result from ordinary actions within bureaucratic systems [10]. 
+Ishiguro’s novel presents conflict as ethical and collective 
+rather than confrontational. 
+
+\vspace{8pt}
+\noindent
+\textbf{Contemporary Fiction and Technological Antagonism}
+
+\noindent
+In contemporary fiction, antagonism becomes even more 
+diffuse and is often shaped by technology. Dave Eggers’s The 
+Circle depicts a society obsessed with transparency and data 
+sharing. Surveillance is not imposed violently but welcomed 
+voluntarily [11]. 
+The antagonistic force is not a person but a system of constant 
+visibility and digital monitoring. Power operates by shaping 
+desire and behaviour rather than issuing commands. 
+Michel Foucault’s concept of disciplinary power is useful here. 
+Foucault argues that modern power produces self-regulating 
+individuals through surveillance and normalisation [12]. The 
+Circle illustrates this process in a digital environment. Shoshana 
+Zuboff’s work on surveillance capitalism further explains how 
+such systems exploit personal data while appearing beneficial 
+[13]. 
+Aravind Adiga’s The White Tiger presents a similar form of 
+individuals 
+systemic antagonism grounded in class hierarchy. Although 
+corrupt 
+appear in the novel, they are 
+interchangeable. The true antagonist is the social structure that 
+sustains inequality [14]. In these works, conflict persists without a central enemy, and resolution remains partial and 
+troubling.
+
+\vspace{8pt}
+\noindent
+\textbf{The Vanishing Antagonist and Reader Responsibility }
+
+\noindent
+The transformation of antagonism also changes how readers 
+engage with fiction. Traditional narratives allow readers to 
+externalise blame and achieve moral satisfaction when villains 
+are punished. Systemic antagonism removes this comfort. 
+By refusing clear villains, modern and contemporary fiction 
+implicates readers in the systems it represents. The discomfort 
+produced by such narratives reflects a world in which injustice 
+cannot be solved through heroic confrontation but requires 
+collective responsibility [15].
+The vanishing antagonist is therefore a deliberate narrative 
+strategy rather than a weakness.
+
+\vspace{8pt}
+\noindent
+\textcolor{journalblue}{\textbf{CONCLUSION}}
+
+\noindent
+The decline of the traditional antagonist in modern and 
+contemporary literary fiction reflects a broader shift in how 
+power and responsibility are experienced. As authority becomes 
+bureaucratic, systemic, and technologically mediated, literature 
+adapts by reconfiguring narrative conflict. Antagonists do not 
+disappear; they lose their faces. By representing power as 
+impersonal and structural, contemporary fiction challenges 
+simplistic moral solutions and exposes the persistence of harm 
+through collective participation. The vanishing antagonist thus 
+emerges as a meaningful formal choice that aligns literature 
+with the realities of modern life.
+
+\vspace{8pt}
+\noindent
+\textcolor{journalblue}{\textbf{REFERENCES}}
+
+\begin{enumerate}[leftmargin=*, itemsep=-2pt, label=\arabic*.]
+
+\item Brooks P. Reading for the plot: Design and intention in narrative. Cambridge (MA): Harvard University Press; 1984.
+
+\item Propp V. Morphology of the folktale. Austin (TX): University of Texas Press; 1968.
+
+\item Bal M. Narratology: Introduction to the theory of narrative. 3rd ed. Toronto: University of Toronto Press; 2009.
+
+\item Rimmon-Kenan S. Narrative fiction: Contemporary poetics. 2nd ed. London: Routledge; 2002.
+
+\item Shakespeare W. Othello. London: Arden Shakespeare; 2016.
+
+\item Hardy T. Tess of the d’Urbervilles. London: Penguin Classics; 2003. Originally published 1891.
+
+\item Kafka F. The trial. Muir W, Muir E, translators. New York: Schocken Books; 1998. Originally published 1925.
+
+\item Weber M. Economy and society. Berkeley (CA): University of California Press; 1978.
+
+\item Ishiguro K. Never let me go. London: Faber and Faber; 2005.
+
+\item Arendt H. Eichmann in Jerusalem: A report on the banality of evil. New York: Viking Press; 1963.
+
+\item Eggers D. The circle. New York: Knopf; 2013.
+
+\item Foucault M. Discipline and punish: The birth of the prison. New York: Vintage Books; 1977.
+
+\item Zuboff S. The age of surveillance capitalism. New York: PublicAffairs; 2019.
+
+\item Adiga A. The white tiger. New York: HarperCollins; 2008.
+
+\item Althusser L. Ideology and ideological state apparatuses. In: Lenin and philosophy and other essays. New York: Monthly Review Press; 1971. p. 127–186.
+
+\end{enumerate}
+
+% ---------------- AUTHOR + LICENSE BOX ----------------
+\noindent
+\begin{tcolorbox}[
+	colback=black!3,        % light gray background
+    colback=white,
+    colframe=black!60,
+    boxrule=0.5pt,
+    arc=0pt,
+    left=2pt,
+    right=2pt,
+    top=2pt,
+    bottom=2pt,
+    boxsep=0pt,            % removes inner padding
+]
+
+% -------- TITLE --------
+\noindent
+\colorbox{black!10}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\centering
+\vspace{2pt}
+\textbf{Creative Commons (CC) License}
+\vspace{2pt}
+}}
+
+\fontsize{7}{9}\selectfont This article is an open-access article distributed under the terms and conditions of the Creative Commons Attribution (CC BY 4.0) license. This license permits unrestricted use, distribution, and reproduction in any medium, provided the original author and source are credited.
+
+\vspace{2pt}
+{\color{black!40}\hrule height 0.3pt}
+\vspace{2pt}
+
+% -------- AUTHOR SECTION --------
+
+\noindent
+\colorbox{black!10}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\centering
+\vspace{2pt}
+\textbf{About the corresponding author}
+\vspace{2pt}
+}}
+
+\noindent
+\begin{minipage}[t]{0.20\textwidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{image.png}
+\end{minipage}
+\hspace{8pt}
+\begin{minipage}[t]{0.75\textwidth}
+
+
+\fontsize{7}{9}\selectfont \textbf{Aseem Singh} is an Assistant Professor in the Department of English at Panjab University Constituent College, NSW, Punjab, India. His academic interests include literary theory, cultural studies, and modern English literature. He is actively engaged in teaching, research, and academic writing, with a focus on critical and interdisciplinary perspectives.
+
+\end{minipage}
+
+\end{tcolorbox}
+
+
+\end{multicols}
+
+
+
+
+\end{document}

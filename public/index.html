@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Article LaTeX Generator</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <img
+        src="/assets/banner.png"
+        alt="Journal banner"
+        class="journal-banner"
+      />
+      <div class="topbar-copy">
+        <p class="eyebrow">Local article builder</p>
+        <h1>Generate journal-ready LaTeX and PDF files</h1>
+      </div>
+    </header>
+
+    <main>
+      <section class="source-panel">
+        <div>
+          <h2>Start From Data</h2>
+          <p>
+            Choose a DOCX from the data folder or upload a new file. Extracted
+            text stays editable before generation.
+          </p>
+        </div>
+
+        <div class="source-grid">
+          <label>
+            Data folder file
+            <select id="dataFile"></select>
+          </label>
+          <button id="extractDataFile" type="button">
+            Extract selected file
+          </button>
+          <label>
+            Upload DOCX or TXT
+            <input id="uploadFile" type="file" accept=".docx,.txt" />
+          </label>
+          <button id="extractUpload" type="button">Extract upload</button>
+        </div>
+      </section>
+
+      <form id="articleForm">
+        <section>
+          <h2>Article Details</h2>
+          <div class="grid two">
+            <label>
+              Article type
+              <input name="articleType" value="Research Article" />
+            </label>
+            <label>
+              ISSN
+              <input name="issn" value="2583-7397" />
+            </label>
+          </div>
+
+          <label>
+            Title
+            <textarea name="title" rows="2" required></textarea>
+          </label>
+
+          <div class="authors-heading">
+            <div>
+              <h3>Authors</h3>
+              <p class="hint">
+                Add each author separately. Each ORCID URL becomes a clickable
+                author link in the PDF.
+              </p>
+            </div>
+            <button id="addAuthor" type="button">Add author</button>
+          </div>
+
+          <div id="authorsList" class="author-list"></div>
+
+          <template id="authorRowTemplate">
+            <div class="author-row">
+              <label>
+                Author name
+                <input data-author-name placeholder="Aseem Singh" />
+              </label>
+              <label>
+                ORCID URL
+                <input
+                  data-author-orcid
+                  placeholder="https://orcid.org/0000-0000-0000-0000"
+                />
+              </label>
+              <button type="button" class="remove-author">Remove</button>
+            </div>
+          </template>
+
+          <label>
+            Affiliation
+            <textarea name="affiliation" rows="4"></textarea>
+          </label>
+
+          <label>
+            Corresponding author line
+            <textarea name="correspondingAuthor" rows="2" readonly></textarea>
+            <span class="field-note"
+              >Automatically uses all authors from the author rows.</span
+            >
+          </label>
+
+          <label>
+            DOI
+            <input name="doi" placeholder="10.xxxx/example" />
+          </label>
+        </section>
+
+        <section>
+          <h2>Abstract And Keywords</h2>
+          <label>
+            Abstract
+            <textarea name="abstract" rows="8"></textarea>
+          </label>
+          <label>
+            Keywords
+            <input
+              name="keywords"
+              placeholder="keyword one, keyword two, keyword three"
+            />
+          </label>
+        </section>
+
+        <section>
+          <h2>Manuscript Information</h2>
+          <div class="grid four">
+            <label>
+              Received
+              <input name="receivedDate" placeholder="13-11-2025" />
+            </label>
+            <label>
+              Accepted
+              <input name="acceptedDate" placeholder="29-12-2025" />
+            </label>
+            <label>
+              Published
+              <input name="publishedDate" placeholder="06-01-2026" />
+            </label>
+            <label>
+              Pages
+              <input name="pages" value="01-03" />
+            </label>
+          </div>
+
+          <div class="grid four">
+            <label>
+              Volume
+              <input name="volume" value="5" />
+            </label>
+            <label>
+              Issue
+              <input name="issue" value="1" />
+            </label>
+            <label>
+              Year
+              <input name="year" value="2026" />
+            </label>
+            <label>
+              Header period
+              <input name="issuePeriod" value="Jan-Feb" placeholder="Jan-Feb" />
+            </label>
+          </div>
+
+          <div class="grid two">
+            <label>
+              Journal website
+              <input
+                name="journalWebsite"
+                value="https://ijaicitjournal.com/"
+              />
+            </label>
+            <label>
+              QR URL
+              <input
+                name="qrUrl"
+                placeholder="https://https://ijaicitjournal.com//article-page"
+              />
+              <span class="field-note"
+                >When provided, a custom QR PNG is generated and used in the
+                article box.</span
+              >
+            </label>
+          </div>
+
+          <label>
+            Citation
+            <textarea
+              name="citation"
+              rows="3"
+              placeholder="Leave blank to auto-build a basic citation."
+            ></textarea>
+          </label>
+        </section>
+
+        <section>
+          <h2>Article Body</h2>
+          <p class="hint">
+            Put section headings on their own lines, for example: Introduction,
+            Methodology, Results, Discussion, Conclusion.
+          </p>
+          <textarea name="bodyText" rows="20"></textarea>
+        </section>
+
+        <section>
+          <h2>References And Author Bio</h2>
+          <label>
+            References
+            <textarea
+              name="referencesText"
+              rows="12"
+              placeholder="One reference per line. Existing 1. or [1] numbering is okay."
+            ></textarea>
+          </label>
+          <label>
+            About corresponding author
+            <textarea name="authorBio" rows="5"></textarea>
+          </label>
+          <label>
+            Author image
+            <input
+              id="authorImageUpload"
+              type="file"
+              accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+            />
+            <input name="authorImage" type="hidden" />
+            <span id="authorImageStatus" class="field-note"
+              >Uses the default author image until a new image is
+              uploaded.</span
+            >
+          </label>
+        </section>
+
+        <section class="actions">
+          <button type="button" id="generateTex">Create .tex</button>
+          <button type="button" id="generatePdf">Create .tex and .pdf</button>
+          <button type="reset">Clear form</button>
+        </section>
+      </form>
+
+      <section class="result-panel" aria-live="polite">
+        <h2>Output</h2>
+        <div id="status">No file generated yet.</div>
+        <div id="downloads" class="downloads"></div>
+        <pre id="details" class="details"></pre>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
