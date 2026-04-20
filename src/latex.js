@@ -1,17 +1,43 @@
 const { parseSections, normalizeWhitespace } = require("./text");
 
-function escapeLatex(value) {
-  return String(value || "")
-    .replace(/\\/g, "\\textbackslash{}")
-    .replace(/&/g, "\\&")
-    .replace(/%/g, "\\%")
-    .replace(/\$/g, "\\$")
-    .replace(/#/g, "\\#")
-    .replace(/_/g, "\\_")
-    .replace(/{/g, "\\{")
-    .replace(/}/g, "\\}")
-    .replace(/\^/g, "\\textasciicircum{}")
-    .replace(/~/g, "\\textasciitilde{}");
+/**
+ * Advanced LaTeX renderer that preserves math and common LaTeX commands.
+ */
+function smartEscape(text) {
+  if (!text) return "";
+
+  // 1. Split text by math delimiters to protect them ($...$, $$...$$, \(...\), \[...\])
+  const mathParts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g);
+  
+  return mathParts.map((part, index) => {
+    if (index % 2 === 1) return part; // Protected math block
+    
+    // 2. Identify and protect LaTeX commands/environments
+    // Refined regex to match commands and multiple brace groups: \cmd{...}{...} or \cmd[...]
+    const commandRegex = /(\\[a-zA-Z*]+(?:\[[^\]]*\])?(?:\{[^{}]*\})*|\\\\)/g;
+    const subParts = part.split(commandRegex);
+    
+    return subParts.map((sub, subIndex) => {
+      if (subIndex % 2 === 1) return sub; // Protected command
+      
+      // 3. For actual plain text, escape standard LaTeX special characters
+      let processed = sub;
+      
+      processed = processed
+        .replace(/\\/g, "___LATEX_BS___")
+        .replace(/&/g, "\\&")
+        .replace(/%/g, "\\%")
+        .replace(/#/g, "\\#")
+        .replace(/_/g, "\\_")
+        .replace(/{/g, "\\{")
+        .replace(/}/g, "\\}")
+        .replace(/\^/g, "\\textasciicircum{}")
+        .replace(/~/g, "\\textasciitilde{}")
+        .replace(/___LATEX_BS___/g, "\\textbackslash{}");
+
+      return processed;
+    }).join("");
+  }).join("");
 }
 
 function latexParagraphs(value) {
@@ -19,14 +45,25 @@ function latexParagraphs(value) {
   if (!text) {
     return "";
   }
-  return text
-    .split(/\n{2,}/)
-    .map((paragraph) =>
-      paragraph
-        .split("\n")
-        .map((line) => escapeLatex(line.trim()))
-        .join(" "),
-    )
+  
+  const paragraphs = text.split(/\n{2,}/);
+  return paragraphs
+    .map((paragraph) => {
+      const trimmed = paragraph.trim();
+      
+      // Improved raw block detection: 
+      // If it starts with \begin or \noindent\begin or $$, treat it as raw LaTeX.
+      const isRaw = /^(\\noindent\s*)?\\begin\{/.test(trimmed) || 
+                    trimmed.startsWith("$$") ||
+                    trimmed.startsWith("\\begin [") ||
+                    trimmed.startsWith("\\begin{tabular}");
+      
+      if (isRaw) {
+        return trimmed;
+      }
+      
+      return smartEscape(trimmed);
+    })
     .join("\n\n");
 }
 
@@ -175,6 +212,7 @@ function normalizeArticle(input) {
   return {
     articleType: article.articleType || "Research Article",
     journalShort: article.journalShort || "Int. Jr. of Contemp. Res. in Multi.",
+    bannerPath: article.bannerPath || "banner.png",
     peerReviewText: article.peerReviewText || "PEER-REVIEWED JOURNAL",
     issuePeriod,
     headerIssue:
@@ -254,9 +292,9 @@ function splitReferences(text) {
 function renderHref(url, text) {
   const cleanUrl = sanitizeUrl(url);
   if (!cleanUrl) {
-    return escapeLatex(text || "");
+    return smartEscape(text || "");
   }
-  return `\\href{${cleanUrl}}{${escapeLatex(text || cleanUrl)}}`;
+  return `\\href{${cleanUrl}}{${smartEscape(text || cleanUrl)}}`;
 }
 
 function renderMetadata(article) {
@@ -267,7 +305,7 @@ function renderMetadata(article) {
     { label: "Published:", value: article.publishedDate || "" },
     { value: article.issueLine },
     {
-      raw: `\\textcopyright{}${escapeLatex(article.year)}, All Rights Reserved`,
+      raw: `\\textcopyright{}${article.year}, All Rights Reserved`,
     },
     { label: "Plagiarism Checked:", value: article.plagiarismChecked },
     { label: "Peer Review Process:", value: article.peerReviewProcess },
@@ -280,21 +318,21 @@ function renderMetadata(article) {
         return `\\item ${row.raw}`;
       }
       if (!row.label) {
-        return `\\item ${escapeLatex(row.value)}`;
+        return `\\item ${smartEscape(row.value)}`;
       }
-      return `\\item \\textbf{${escapeLatex(row.label)}} ${escapeLatex(row.value)}`;
+      return `\\item \\textbf{${smartEscape(row.label)}} ${smartEscape(row.value)}`;
     })
     .join("\n");
 }
 
 function renderCitation(article) {
   if (article.citation) {
-    return escapeLatex(article.citation);
+    return smartEscape(article.citation);
   }
 
   const author =
     firstAuthorName(article.authors) || article.correspondingAuthor || "Author";
-  return escapeLatex(
+  return smartEscape(
     `${author}. ${article.title}. ${article.journalCitation} ${article.year};${article.volume}(${article.issue}):${article.pages}.`,
   );
 }
@@ -307,7 +345,7 @@ function renderSections(sections) {
   return sections
     .map((section) => {
       const heading = section.heading
-        ? `\\vspace{8pt}\n\\noindent\n\\textcolor{journalblue}{\\textbf{${escapeLatex(section.heading.toUpperCase())}}}\n\n`
+        ? `\\vspace{8pt}\n\\noindent\n\\textcolor{journalblue}{\\textbf{${smartEscape(section.heading.toUpperCase())}}}\n\n`
         : "";
       const body = `\\noindent\n${latexParagraphs(section.content)}`;
       return `${heading}${body}`;
@@ -344,19 +382,19 @@ ${items}
 }
 
 function renderAuthorLink(author, options = {}) {
-  const name = escapeLatex(author.name || "");
+  const name = smartEscape(author.name || "");
   if (!name) {
     return "";
   }
 
-  const authorText = options.bold ? `\\textbf{${name}}` : name;
   const url = sanitizeUrl(author.orcid || author.authorOrcid);
-
-  if (!url) {
-    return authorText;
+  let iconPrefix = "";
+  if (url) {
+    iconPrefix = `\\href{${url}}{\\includegraphics[height=8pt]{orcid.png}}~`;
   }
 
-  return `\\href{${url}}{\\includegraphics[height=8pt]{orcid.png}~${authorText}}`;
+  const authorText = options.bold ? `\\textbf{${name}}` : name;
+  return `${iconPrefix}${authorText}`;
 }
 
 function renderAuthorLinks(authorsList, options = {}) {
@@ -375,7 +413,8 @@ function renderFontSetup(article) {
   }
 
   return `\\usepackage{fontspec}
-\\IfFontExistsTF{Times New Roman}{\\setmainfont{Times New Roman}}{\\setmainfont{Latin Modern Roman}}`;
+\\setmainfont{Times New Roman}
+\\usepackage[varg]{newtxmath}`;
 }
 
 function renderLatex(input) {
@@ -388,11 +427,13 @@ function renderLatex(input) {
   const doiBlock = doi.id
     ? `\\textcolor{journalblue}{\\textbf{DOI:}}~${renderHref(doi.url, `doi:${doi.id}`)}`
     : "";
-  const authorVerb = article.authorsList.length > 1 ? "are" : "is";
-
+  
   const authorBio = article.authorBio
     ? latexParagraphs(article.authorBio)
-    : `${escapeLatex(article.correspondingAuthor)} ${authorVerb} associated with ${latexParagraphs(article.affiliation || "the author affiliation supplied for this article.")}`;
+    : `\\textbf{${smartEscape(article.correspondingAuthor)}} ${article.authorsList.length > 1 ? "are" : "is"} associated with ${smartEscape(article.affiliation || "the institution.")}`;
+
+  // Use the banner from the article data
+  const bannerImage = article.bannerPath;
 
   return String.raw`\documentclass[12pt,a4paper]{article}
 
@@ -405,6 +446,8 @@ ${renderFontSetup(article)}
 \usepackage{graphicx}
 \usepackage[most]{tcolorbox}
 \usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{booktabs, array, multirow}
 \usepackage[colorlinks=true, linkcolor=linkblue, urlcolor=linkblue]{hyperref}
 
 \setstretch{1.15}
@@ -427,19 +470,19 @@ ${renderFontSetup(article)}
 \fancyhead[L]{%
   \fontsize{9}{12}\selectfont
   \spaceskip=0.2em
-  \textcolor{journalblue}{\textbf{\textit{${escapeLatex(article.journalShort)}}}}%
+  \textcolor{journalblue}{\textbf{\textit{${smartEscape(article.journalShort)}}}}%
 }
 
 \fancyhead[C]{%
   \fontsize{9}{12}\selectfont
   \spaceskip=0.2em
-  \textcolor{journalred}{\textbf{\textit{${escapeLatex(article.peerReviewText)}}}}%
+  \textcolor{journalred}{\textbf{\textit{${smartEscape(article.peerReviewText)}}}}%
 }
 
 \fancyhead[R]{%
   \fontsize{9}{12}\selectfont
   \spaceskip=0.2em
-  \textcolor{journalblue}{\textbf{\textit{${escapeLatex(article.headerIssue)}}}}%
+  \textcolor{journalblue}{\textbf{\textit{${smartEscape(article.headerIssue)}}}}%
 }
 
 \renewcommand{\headrulewidth}{0.8pt}
@@ -458,7 +501,7 @@ ${renderFontSetup(article)}
     \end{minipage}%
     \begin{minipage}{0.9\textwidth}
         \fontsize{7}{8}\selectfont
-        \textcopyright{} ${escapeLatex(article.year)} ${escapeLatex(article.correspondingAuthor)}. This is an open-access article distributed under the terms of the ${escapeLatex(article.licenseName)}.
+        \textcopyright{} ${article.year} ${smartEscape(article.correspondingAuthor)}. This is an open-access article distributed under the terms of the ${smartEscape(article.licenseName)}.
         ${renderHref(article.licenseUrl, article.licenseUrl)}
     \end{minipage}%
 \end{minipage}%
@@ -468,7 +511,7 @@ ${renderFontSetup(article)}
 
 % ---------------- BANNER ----------------
 \noindent
-\includegraphics[width=\textwidth]{banner.png}
+\includegraphics[width=\textwidth]{${bannerImage}}
 
 \vspace{4pt}
 
@@ -478,7 +521,7 @@ ${renderFontSetup(article)}
     \parbox{\textwidth}{%
         \vspace{2pt}
         \fontsize{10}{10}\selectfont
-        \textcolor{journalblue}{\textbf{\textit{${escapeLatex(article.articleType)}}}}%
+        \textcolor{journalblue}{\textbf{\textit{${smartEscape(article.articleType)}}}}%
         \vspace{2pt}%
     }%
 }
@@ -486,7 +529,7 @@ ${renderFontSetup(article)}
 % ---------------- TITLE ----------------
 \begin{center}
     \fontsize{16}{20}\bfseries\textbf{%
-    ${escapeLatex(article.title)}
+    ${smartEscape(article.title)}
     }%
 \end{center}
 
@@ -595,7 +638,7 @@ ${renderCitation(article)}
 \vspace{2pt}
 
 {\fontsize{8}{9}\selectfont
-\textcolor{journalblue}{${escapeLatex(article.journalWebsite)}}
+\textcolor{journalblue}{${smartEscape(article.journalWebsite)}}
 }
 
 \end{minipage}
@@ -607,7 +650,7 @@ ${renderCitation(article)}
 \begin{minipage}[t]{1\textwidth}
     \fontsize{10}{12}\selectfont
     \textcolor{journalblue}{\textbf{KEYWORDS:}} 
-    ${escapeLatex(article.keywords)}
+    ${smartEscape(article.keywords)}
 \end{minipage}
 
 \vspace{6pt}
@@ -643,7 +686,7 @@ ${renderReferences(article.references)}
 \vspace{2pt}
 }}
 
-\fontsize{7}{9}\selectfont This article is an open-access article distributed under the terms and conditions of the ${escapeLatex(article.licenseName)}. This license permits use, distribution, and reproduction according to the license terms, provided the original author and source are credited.
+\fontsize{7}{9}\selectfont This article is an open-access article distributed under the terms and conditions of the ${smartEscape(article.licenseName)}. This license permits use, distribution, and reproduction according to the license terms, provided the original author and source are credited.
 
 \vspace{2pt}
 {\color{black!40}\hrule height 0.3pt}
@@ -682,5 +725,5 @@ module.exports = {
   normalizeArticle,
   renderLatex,
   makeSlug,
-  escapeLatex,
+  smartEscape,
 };

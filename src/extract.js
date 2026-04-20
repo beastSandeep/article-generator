@@ -1,5 +1,6 @@
 const fs = require('node:fs/promises');
 const path = require('node:path');
+const crypto = require('node:crypto');
 
 const mammoth = require('mammoth');
 const { parseSections, normalizeWhitespace, isKnownHeading } = require('./text');
@@ -16,12 +17,68 @@ const EMAIL_RE = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i;
 const PHONE_RE = /\b(?:contact|phone|mobile|tel\.?|telephone)\b/i;
 const NON_TITLE_RE = /^(research article|original article|review article|case study|short communication|article|paper id|manuscript id)\s*:?.*$/i;
 
-async function extractRawText(filePath) {
+function decodeEntities(html) {
+  return html
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, ' ');
+}
+
+async function extractRichText(filePath) {
   const ext = path.extname(filePath).toLowerCase();
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  
   if (ext === '.docx') {
-    const result = await mammoth.extractRawText({ path: filePath });
-    return result.value;
+    const options = {
+      convertImage: mammoth.images.inline(async (element) => {
+        const buffer = await element.read();
+        const hash = crypto.createHash('md5').update(buffer).digest('hex').slice(0, 10);
+        const imageExt = element.contentType.split('/')[1] || 'png';
+        const fileName = `extracted-${Date.now()}-${hash}.${imageExt}`;
+        const targetPath = path.join(uploadsDir, fileName);
+        
+        await fs.mkdir(uploadsDir, { recursive: true });
+        await fs.writeFile(targetPath, buffer);
+        
+        // Return a marker that we can easily find and replace
+        return {
+          src: `___LATEX_IMAGE_MARKER___uploads/${fileName}___`
+        };
+      }),
+      ignoreEmptyParagraphs: false
+    };
+
+    // Convert to HTML to preserve structure and position of images
+    const { value: html } = await mammoth.convertToHtml({ path: filePath }, options);
+    
+    // 1. Skip tables as requested (the user will create them manually)
+    let processedHtml = html.replace(/<table.*?>.*?<\/table>/gs, '\n[Table Skipped - Use Table Builder]\n');
+    
+    // 2. Decode entities
+    processedHtml = decodeEntities(processedHtml);
+
+    // 3. Clean up HTML while preserving our image markers and basic spacing
+    let text = processedHtml
+      .replace(/<p.*?>/g, '\n')
+      .replace(/<\/p>/g, '\n')
+      .replace(/<br\s*\/?>/g, '\n')
+      .replace(/<h[1-6].*?>(.*?)<\/h[1-6]>/g, '\n$1\n')
+      // Convert our image markers into LaTeX commands
+      .replace(/<img src="___LATEX_IMAGE_MARKER___(.*?)\___".*?>/g, '\n\\begin{center}\n\\includegraphics[width=0.8\\linewidth]{$1}\n\\end{center}\n')
+      // Strip remaining tags
+      .replace(/<[^>]+>/g, (tag) => {
+        // Keep our markers if they somehow survived as attributes
+        return tag.includes('___LATEX_IMAGE_MARKER___') ? tag : '';
+      })
+      // Final strip for any stray tags
+      .replace(/<[^>]+>/g, '');
+      
+    return text;
   }
+  
   if (ext === '.txt') {
     return fs.readFile(filePath, 'utf8');
   }
@@ -282,7 +339,7 @@ function parseArticleText(rawText, sourceName = '') {
     throw createExtractionError('Auto extraction supports English documents only. Use the manual form for this file.');
   }
 
-  const lines = cleanLines(rawText);
+  const lines = rawText.split('\n').map(l => l.trim()).filter(Boolean);
   if (!lines.length) {
     throw createExtractionError('No readable text was found in this document.');
   }
@@ -319,6 +376,7 @@ function parseArticleText(rawText, sourceName = '') {
         ? abstractBlock.endIndex
         : authorEnd;
   const bodyEnd = referencesLine ? referencesLine.index : lines.length;
+  
   const bodyLines = bodyStart >= 0 ? lines.slice(bodyStart, bodyEnd) : [];
   const bodyText = bodyLines.join('\n').trim();
 
@@ -360,7 +418,7 @@ function parseArticleText(rawText, sourceName = '') {
 }
 
 async function extractArticleFromFile(filePath, sourceName = '') {
-  const rawText = await extractRawText(filePath);
+  const rawText = await extractRichText(filePath);
   return parseArticleText(rawText, sourceName);
 }
 

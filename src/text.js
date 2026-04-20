@@ -14,6 +14,11 @@ function isKnownHeading(line) {
     return false;
   }
 
+  // Reject lines that look like LaTeX commands or table rows
+  if (trimmed.includes('&') || trimmed.includes('\\\\') || trimmed.startsWith('\\')) {
+    return false;
+  }
+
   const knownEnglish =
     /^(?:\d+(?:\.\d+)*\.?\s*)?(introduction|literature review|review of literature|background|material and methods|materials and methods|methodology|research methodology|research design|data sources and triangulation|literature search strategy|data analysis|data management and manual analysis|outcome of the methodological process|researcher bias control|results?|discussion|conclusion|reflection|acknowledgements?|conflict of interest|limitations?|case studies?.*)\s*:?\s*$/i;
   const knownBengali =

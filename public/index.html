@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Article LaTeX Generator</title>
     <link rel="stylesheet" href="/styles.css" />
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   </head>
   <body>
     <header class="topbar">
@@ -20,235 +22,440 @@
     </header>
 
     <main>
-      <section class="source-panel">
-        <div>
-          <h2>Start From Data</h2>
-          <p>
-            Choose a DOCX from the data folder or upload a new file. Extracted
-            text stays editable before generation.
-          </p>
-        </div>
+      <section class="source-panel" x-data="{ open: true }">
+        <h2 @click="open = !open">
+          <span>Start From Data</span>
+          <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+        </h2>
+        
+        <div x-show="open" x-collapse class="section-content">
+          <div class="source-grid-container">
+            <div class="source-intro">
+              <p>
+                Choose a DOCX from the data folder or upload a new file. Extracted
+                text stays editable before generation.
+              </p>
+            </div>
 
-        <div class="source-grid">
-          <label>
-            Data folder file
-            <select id="dataFile"></select>
-          </label>
-          <button id="extractDataFile" type="button">
-            Extract selected file
-          </button>
-          <label>
-            Upload DOCX or TXT
-            <input id="uploadFile" type="file" accept=".docx,.txt" />
-          </label>
-          <button id="extractUpload" type="button">Extract upload</button>
+            <div class="source-grid">
+              <label>
+                Data folder file
+                <select id="dataFile"></select>
+              </label>
+              <button id="extractDataFile" type="button">
+                Extract selected file
+              </button>
+              <label>
+                Upload DOCX or TXT
+                <input id="uploadFile" type="file" accept=".docx,.txt" />
+              </label>
+              <button id="extractUpload" type="button">Extract upload</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="journal-settings" x-data="{ open: true }">
+        <h2 @click="open = !open">
+          <span>Journal & Banner Settings</span>
+          <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+        </h2>
+        
+        <div x-show="open" x-collapse class="section-content">
+          <div class="grid two">
+            <label>
+              Journal Name (Header Left)
+              <input name="journalShort" value="Int. Jr. of Contemp. Res. in Multi." form="articleForm" />
+            </label>
+            <label>
+              Header Center Text (Red)
+              <input name="peerReviewText" value="PEER-REVIEWED JOURNAL" form="articleForm" />
+            </label>
+          </div>
+          
+          <div class="grid two" style="margin-top: 15px;">
+            <label>
+              Article Type (Strip)
+              <input name="articleType" value="Research Article" placeholder="e.g. Review Article, Case Study" form="articleForm" />
+            </label>
+            <div x-data="{ 
+                banners: [], 
+                selected: 'banner.png',
+                async loadBanners() {
+                  const res = await fetch('/api/banners');
+                  const data = await res.json();
+                  this.banners = data.banners;
+                },
+                async uploadBanner(e) {
+                  const file = e.target.files[0];
+                  if(!file) return;
+                  const body = new FormData();
+                  body.append('banner', file);
+                  const res = await fetch('/api/upload-banner', { method: 'POST', body });
+                  const data = await res.json();
+                  await this.loadBanners();
+                  this.selected = data.fileName;
+                }
+              }" x-init="loadBanners()">
+              <label>
+                Select Banner
+                <select name="bannerPath" x-model="selected" form="articleForm">
+                  <option value="banner.png">Default (banner.png)</option>
+                  <template x-for="b in banners">
+                    <option :value="'banners/' + b" x-text="b"></option>
+                  </template>
+                </select>
+              </label>
+              <div style="margin-top: 8px;">
+                <input type="file" @change="uploadBanner" accept=".png,.jpg,.jpeg" style="font-size: 0.8rem; padding: 5px;" />
+                <span class="field-note">Upload new banner image</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
       <form id="articleForm">
-        <section>
-          <h2>Article Details</h2>
-          <div class="grid two">
-            <label>
-              Article type
-              <input name="articleType" value="Research Article" />
-            </label>
-            <label>
-              ISSN
-              <input name="issn" value="2583-7397" />
-            </label>
-          </div>
-
-          <label>
-            Title
-            <textarea name="title" rows="2" required></textarea>
-          </label>
-
-          <div class="authors-heading">
-            <div>
-              <h3>Authors</h3>
-              <p class="hint">
-                Add each author separately. Each ORCID URL becomes a clickable
-                author link in the PDF.
-              </p>
-            </div>
-            <button id="addAuthor" type="button">Add author</button>
-          </div>
-
-          <div id="authorsList" class="author-list"></div>
-
-          <template id="authorRowTemplate">
-            <div class="author-row">
+        <section x-data="{ open: true }">
+          <h2 @click="open = !open">
+            <span>Article Details</span>
+            <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+          </h2>
+          
+          <div x-show="open" x-collapse class="section-content">
+            <div class="grid two">
               <label>
-                Author name
-                <input data-author-name placeholder="Aseem Singh" />
+                ISSN
+                <input name="issn" value="2583-7397" />
               </label>
               <label>
-                ORCID URL
-                <input
-                  data-author-orcid
-                  placeholder="https://orcid.org/0000-0000-0000-0000"
-                />
+                DOI
+                <input name="doi" placeholder="10.xxxx/example" />
               </label>
-              <button type="button" class="remove-author">Remove</button>
             </div>
-          </template>
 
-          <label>
-            Affiliation
-            <textarea name="affiliation" rows="4"></textarea>
-          </label>
+            <label>
+              Title
+              <textarea name="title" rows="2" required></textarea>
+            </label>
 
-          <label>
-            Corresponding author line
-            <textarea name="correspondingAuthor" rows="2" readonly></textarea>
-            <span class="field-note"
-              >Automatically uses all authors from the author rows.</span
-            >
-          </label>
+            <div class="authors-heading">
+              <div>
+                <h3>Authors</h3>
+                <p class="hint">
+                  Add each author separately. Each ORCID URL becomes a clickable
+                  author link in the PDF.
+                </p>
+              </div>
+              <button id="addAuthor" type="button">Add author</button>
+            </div>
 
-          <label>
-            DOI
-            <input name="doi" placeholder="10.xxxx/example" />
-          </label>
-        </section>
+            <div id="authorsList" class="author-list"></div>
 
-        <section>
-          <h2>Abstract And Keywords</h2>
-          <label>
-            Abstract
-            <textarea name="abstract" rows="8"></textarea>
-          </label>
-          <label>
-            Keywords
-            <input
-              name="keywords"
-              placeholder="keyword one, keyword two, keyword three"
-            />
-          </label>
-        </section>
+            <template id="authorRowTemplate">
+              <div class="author-row">
+                <label>
+                  Author name
+                  <input data-author-name placeholder="Aseem Singh" />
+                </label>
+                <label>
+                  ORCID URL
+                  <input
+                    data-author-orcid
+                    placeholder="https://orcid.org/0000-0000-0000-0000"
+                  />
+                </label>
+                <button type="button" class="remove-author">Remove</button>
+              </div>
+            </template>
 
-        <section>
-          <h2>Manuscript Information</h2>
-          <div class="grid four">
             <label>
-              Received
-              <input name="receivedDate" placeholder="13-11-2025" />
+              Affiliation
+              <textarea name="affiliation" rows="4"></textarea>
             </label>
-            <label>
-              Accepted
-              <input name="acceptedDate" placeholder="29-12-2025" />
-            </label>
-            <label>
-              Published
-              <input name="publishedDate" placeholder="06-01-2026" />
-            </label>
-            <label>
-              Pages
-              <input name="pages" value="01-03" />
-            </label>
-          </div>
 
-          <div class="grid four">
             <label>
-              Volume
-              <input name="volume" value="5" />
-            </label>
-            <label>
-              Issue
-              <input name="issue" value="1" />
-            </label>
-            <label>
-              Year
-              <input name="year" value="2026" />
-            </label>
-            <label>
-              Header period
-              <input name="issuePeriod" value="Jan-Feb" placeholder="Jan-Feb" />
-            </label>
-          </div>
-
-          <div class="grid two">
-            <label>
-              Journal website
-              <input
-                name="journalWebsite"
-                value="https://ijaicitjournal.com/"
-              />
-            </label>
-            <label>
-              QR URL
-              <input
-                name="qrUrl"
-                placeholder="https://https://ijaicitjournal.com//article-page"
-              />
+              Corresponding author line
+              <textarea name="correspondingAuthor" rows="2"></textarea>
               <span class="field-note"
-                >When provided, a custom QR PNG is generated and used in the
-                article box.</span
+                >Defaults to all authors. You can manually edit this if needed.</span
               >
             </label>
           </div>
-
-          <label>
-            Citation
-            <textarea
-              name="citation"
-              rows="3"
-              placeholder="Leave blank to auto-build a basic citation."
-            ></textarea>
-          </label>
         </section>
 
-        <section>
-          <h2>Article Body</h2>
-          <p class="hint">
-            Put section headings on their own lines, for example: Introduction,
-            Methodology, Results, Discussion, Conclusion.
-          </p>
-          <textarea name="bodyText" rows="20"></textarea>
+        <section x-data="{ open: true }">
+          <h2 @click="open = !open">
+            <span>Abstract And Keywords</span>
+            <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+          </h2>
+          
+          <div x-show="open" x-collapse class="section-content">
+            <label>
+              Abstract
+              <textarea name="abstract" rows="8"></textarea>
+            </label>
+            <label>
+              Keywords
+              <input
+                name="keywords"
+                placeholder="keyword one, keyword two, keyword three"
+              />
+            </label>
+          </div>
         </section>
 
-        <section>
-          <h2>References And Author Bio</h2>
-          <label>
-            References
-            <textarea
-              name="referencesText"
-              rows="12"
-              placeholder="One reference per line. Existing 1. or [1] numbering is okay."
-            ></textarea>
-          </label>
-          <label>
-            About corresponding author
-            <textarea name="authorBio" rows="5"></textarea>
-          </label>
-          <label>
-            Author image
-            <input
-              id="authorImageUpload"
-              type="file"
-              accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-            />
-            <input name="authorImage" type="hidden" />
-            <span id="authorImageStatus" class="field-note"
-              >Uses the default author image until a new image is
-              uploaded.</span
-            >
-          </label>
+        <section x-data="{ open: true }">
+          <h2 @click="open = !open">
+            <span>Manuscript Information</span>
+            <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+          </h2>
+          
+          <div x-show="open" x-collapse class="section-content">
+            <div class="grid manuscript-info">
+              <label>
+                Received
+                <input type="date" name="receivedDate" />
+              </label>
+              <label>
+                Accepted
+                <input type="date" name="acceptedDate" />
+              </label>
+              <label>
+                Published
+                <input type="date" name="publishedDate" />
+              </label>
+              <label class="small-input">
+                Pages
+                <input name="pages" value="01-03" />
+              </label>
+              <label class="small-input">
+                Vol
+                <input name="volume" value="5" />
+              </label>
+              <label class="small-input">
+                Issue
+                <input name="issue" value="1" />
+              </label>
+              <label class="small-input">
+                Year
+                <input name="year" value="2026" />
+              </label>
+              <label>
+                Header period
+                <input name="issuePeriod" value="Jan-Feb" placeholder="Jan-Feb" />
+              </label>
+            </div>
+
+            <div class="grid two">
+              <label>
+                Journal website
+                <input
+                  name="journalWebsite"
+                  value="https://ijaicitjournal.com/"
+                />
+              </label>
+              <label>
+                QR URL
+                <input
+                  name="qrUrl"
+                  placeholder="https://ijaicitjournal.com/article-page"
+                />
+                <span class="field-note"
+                  >When provided, a custom QR PNG is generated and used in the
+                  article box.</span
+                >
+              </label>
+            </div>
+
+            <label>
+              Citation
+              <textarea
+                name="citation"
+                rows="3"
+                placeholder="Leave blank to auto-build a basic citation."
+              ></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section x-data="{ open: true }">
+          <h2 @click="open = !open">
+            <span>Article Body</span>
+            <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+          </h2>
+          
+          <div x-show="open" x-collapse class="section-content">
+            <p class="hint">
+              Put section headings on their own lines. Supports:
+              <br />• <strong>Math:</strong> Use <code>$ \alpha $</code> or <code>$$ \sum $$</code>
+              <br />• <strong>Tables:</strong> Use <code>\begin{tabular}...\end{tabular}</code>
+              <br />• <strong>Images:</strong> Upload below to get the LaTeX code.
+            </p>
+            <textarea name="bodyText" rows="20"></textarea>
+
+            <div class="image-helper">
+              <h3>Insert Image</h3>
+              <div class="grid two" style="align-items: center;">
+                <input id="bodyImageUpload" type="file" accept=".png,.jpg,.jpeg" />
+                <div id="bodyImageResult" class="field-note">Upload an image to get its LaTeX code.</div>
+              </div>
+            </div>
+
+            <div class="table-helper" 
+                 style="margin-top: 20px; border-top: 1px solid var(--line); padding-top: 15px;"
+                 x-data="{ 
+                    rows: 3, 
+                    cols: 3, 
+                    hasHeader: true,
+                    data: [],
+                    latex: '',
+                    init() { this.buildGrid() },
+                    buildGrid() {
+                      const newData = [];
+                      for(let r=0; r<this.rows; r++) {
+                        const row = [];
+                        for(let c=0; c<this.cols; c++) {
+                          row.push(this.data[r]?.[c] || '');
+                        }
+                        newData.push(row);
+                      }
+                      this.data = newData;
+                    },
+                    reset() {
+                      this.rows = 3; this.cols = 3; this.data = []; this.latex = ''; this.buildGrid();
+                    },
+                    generate() {
+                      let res = '\\begin{center}\n\\begin{tabular}{' + '|l'.repeat(this.cols) + '|}\n\\hline\n';
+                      this.data.forEach((row, r) => {
+                        const cells = row.map((cell, c) => {
+                          let val = cell.trim() || '~';
+                          return (this.hasHeader && r === 0) ? `\\textbf{${val}}` : val;
+                        });
+                        res += cells.join(' & ') + ' \\\\\n\\hline\n';
+                      });
+                      res += '\\end{tabular}\n\\end{center}';
+                      this.latex = res;
+                    },
+                    copyToBody() {
+                      const body = document.querySelector('textarea[name=\'bodyText\']');
+                      body.value = body.value.trim() + '\n\n' + this.latex;
+                      body.dispatchEvent(new Event('input'));
+                      alert('Table code appended to Article Body!');
+                    }
+                 }">
+              <h3>Table Builder</h3>
+              <p class="hint">Create a table visually. Data is preserved when changing rows/cols.</p>
+              <div class="grid three" style="align-items: end; gap: 10px;">
+                <label>Rows <input type="number" x-model.number="rows" @input="buildGrid()" min="1" max="20" /></label>
+                <label>Cols <input type="number" x-model.number="cols" @input="buildGrid()" min="1" max="10" /></label>
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <input type="checkbox" x-model="hasHeader" style="width: auto; margin: 0;" />
+                    <label style="margin: 0;">Header Row?</label>
+                  </div>
+                  <div style="display: flex; gap: 4px;">
+                     <button type="button" @click="rows++; buildGrid()" style="padding:4px 8px; min-height:30px; font-size:0.8rem;">+Row</button>
+                     <button type="button" @click="cols++; buildGrid()" style="padding:4px 8px; min-height:30px; font-size:0.8rem;">+Col</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="margin-top: 15px; overflow-x: auto;">
+                <table class="builder-table">
+                  <tbody>
+                    <template x-for="(row, r) in data" :key="r">
+                      <tr>
+                        <template x-for="(cell, c) in row" :key="c">
+                          <td><input type="text" x-model="data[r][c]" :placeholder="'Cell '+(r+1)+','+(c+1)" /></td>
+                        </template>
+                      </tr>
+                    </template>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="actions" style="margin-top: 15px; border:0; padding:0;">
+                <button type="button" @click="generate()">Generate Table LaTeX</button>
+                <button type="button" @click="copyToBody()" x-show="latex" style="background:var(--focus)">Copy to Article Body</button>
+                <button type="button" @click="reset()" style="background:#687581">Reset Table</button>
+              </div>
+
+              <div x-show="latex" style="margin-top: 10px;">
+                <div class="field-note">Copy this LaTeX code:</div>
+                <code x-text="latex" style="display:block;background:#eee;padding:10px;margin-top:5px;user-select:all;word-break:break-all;white-space:pre-wrap;font-family:monospace;font-size:0.85rem;border-radius:4px;"></code>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section x-data="{ open: true }">
+          <h2 @click="open = !open">
+            <span>References And Author Bio</span>
+            <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+          </h2>
+          
+          <div x-show="open" x-collapse class="section-content">
+            <label>
+              References
+              <textarea
+                name="referencesText"
+                rows="12"
+                placeholder="One reference per line. Existing 1. or [1] numbering is okay."
+              ></textarea>
+            </label>
+            <label>
+              About corresponding author
+              <textarea name="authorBio" rows="5"></textarea>
+            </label>
+            <label>
+              Author image
+              <input
+                id="authorImageUpload"
+                type="file"
+                accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+              />
+              <input name="authorImage" type="hidden" />
+              <span id="authorImageStatus" class="field-note"
+                >Uses the default author image until a new image is
+                uploaded.</span
+              >
+            </label>
+          </div>
         </section>
 
         <section class="actions">
-          <button type="button" id="generateTex">Create .tex</button>
-          <button type="button" id="generatePdf">Create .tex and .pdf</button>
+          <button type="button" id="generatePdf">Generate PDF</button>
           <button type="reset">Clear form</button>
         </section>
       </form>
 
-      <section class="result-panel" aria-live="polite">
-        <h2>Output</h2>
-        <div id="status">No file generated yet.</div>
-        <div id="downloads" class="downloads"></div>
-        <pre id="details" class="details"></pre>
+      <section class="result-panel" x-data="{ open: true }">
+        <h2 @click="open = !open">
+          <span>Output</span>
+          <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+        </h2>
+        
+        <div x-show="open" x-collapse class="section-content">
+          <div id="status">No file generated yet.</div>
+          <div id="downloads" class="downloads"></div>
+          <pre id="details" class="details"></pre>
+        </div>
+      </section>
+
+      <section class="system-panel" x-data="{ open: true }">
+        <h2 @click="open = !open">
+          <span>System Maintenance</span>
+          <span class="toggle-icon" x-text="open ? '−' : '+'"></span>
+        </h2>
+        
+        <div x-show="open" x-collapse class="section-content">
+          <p class="hint">Clear temporary files to save space or start fresh.</p>
+          <div class="actions" style="margin-top: 15px;">
+            <button type="button" id="clearUploads" style="background:#687581">Clear Uploads</button>
+            <button type="button" id="clearGenerated" style="background:#687581">Clear Generated PDFs</button>
+          </div>
+        </div>
       </section>
     </main>
 

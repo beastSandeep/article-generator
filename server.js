@@ -17,6 +17,8 @@ const DATA_DIR = path.join(ROOT, "data");
 const UPLOAD_DIR = path.join(ROOT, "uploads");
 const GENERATED_DIR = path.join(ROOT, "generated");
 const PUBLIC_DIR = path.join(ROOT, "public");
+const BANNER_DIR = path.join(ROOT, "banners");
+
 const ALLOWED_ASSETS = new Set([
   "banner.png",
   "orcid.png",
@@ -33,7 +35,7 @@ app.use(express.static(PUBLIC_DIR));
 
 const documentUpload = multer({
   dest: UPLOAD_DIR,
-  limits: { fileSize: 20 * 1024 * 1024 },
+  limits: { fileSize: 50 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if ([".docx", ".txt"].includes(ext)) {
@@ -46,7 +48,7 @@ const documentUpload = multer({
 
 const imageUpload = multer({
   dest: UPLOAD_DIR,
-  limits: { fileSize: 8 * 1024 * 1024 },
+  limits: { fileSize: 20 * 1024 * 1024 },
   fileFilter: (_req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if ([".png", ".jpg", ".jpeg"].includes(ext)) {
@@ -57,11 +59,25 @@ const imageUpload = multer({
   },
 });
 
+const bannerUpload = multer({
+  dest: BANNER_DIR,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase();
+    if ([".png", ".jpg", ".jpeg"].includes(ext)) {
+      cb(null, true);
+      return;
+    }
+    cb(new Error("Only .png, .jpg, and .jpeg images are supported for banners."));
+  },
+});
+
 async function ensureDirs() {
   await Promise.all([
     fs.mkdir(DATA_DIR, { recursive: true }),
     fs.mkdir(UPLOAD_DIR, { recursive: true }),
     fs.mkdir(GENERATED_DIR, { recursive: true }),
+    fs.mkdir(BANNER_DIR, { recursive: true }),
   ]);
 }
 
@@ -315,11 +331,94 @@ app.get("/assets/:file", async (req, res, next) => {
   }
 });
 
-app.use((error, _req, res, _next) => {
-  const message =
-    error && error.message ? error.message : "Unexpected server error.";
-  res.status(error.status || 500).json({ error: message });
+app.post(
+  "/api/upload-image",
+  imageUpload.single("image"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No image uploaded." });
+        return;
+      }
+
+      const fileName = safeUploadFileName(req.file.originalname, "body");
+      const targetPath = safeUploadAssetPath(fileName);
+      await fs.rename(req.file.path, targetPath);
+
+      res.json({
+        imageUrl: `uploads/${fileName}`,
+        originalName: req.file.originalname,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.post("/api/clear-files", async (req, res, next) => {
+  try {
+    const { folder } = req.body;
+    let targetDir;
+
+    if (folder === "uploads") {
+      targetDir = UPLOAD_DIR;
+    } else if (folder === "generated") {
+      targetDir = GENERATED_DIR;
+    } else {
+      res.status(400).json({ error: "Invalid folder specified." });
+      return;
+    }
+
+    const files = await fs.readdir(targetDir);
+    await Promise.all(
+      files.map((file) => fs.unlink(path.join(targetDir, file))),
+    );
+
+    res.json({ ok: true, message: `Cleared ${files.length} files from ${folder}.` });
+  } catch (error) {
+    next(error);
+  }
 });
+
+app.post(
+  "/api/upload-banner",
+  bannerUpload.single("banner"),
+  async (req, res, next) => {
+    try {
+      if (!req.file) {
+        res.status(400).json({ error: "No banner uploaded." });
+        return;
+      }
+
+      // Preserve original name or sanitize it
+      const originalName = req.file.originalname;
+      const targetPath = path.join(BANNER_DIR, originalName);
+      
+      // Move from temp path to the original name in banner dir
+      await fs.rename(req.file.path, targetPath);
+
+      res.json({
+        bannerUrl: `banners/${originalName}`,
+        fileName: originalName,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+app.get("/api/banners", async (_req, res, next) => {
+  try {
+    const files = await fs.readdir(BANNER_DIR);
+    const banners = files.filter(f => /\.(png|jpg|jpeg)$/i.test(f));
+    res.json({ banners });
+  } catch (error) {
+    next(error);
+  }
+});
+
+app.use("/uploads", express.static(UPLOAD_DIR));
+app.use("/banners", express.static(BANNER_DIR));
 
 async function startServer(port) {
   await ensureDirs();

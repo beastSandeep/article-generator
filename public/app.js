@@ -8,10 +8,12 @@ const authorsList = document.querySelector("#authorsList");
 const authorRowTemplate = document.querySelector("#authorRowTemplate");
 const authorImageUpload = document.querySelector("#authorImageUpload");
 const authorImageStatus = document.querySelector("#authorImageStatus");
+const bodyImageUpload = document.querySelector("#bodyImageUpload");
+const bodyImageResult = document.querySelector("#bodyImageResult");
 
 function setBusy(isBusy) {
-  document.querySelectorAll("button").forEach((button) => {
-    button.disabled = isBusy;
+  document.querySelectorAll("button, input[type='file'], input[type='number']").forEach((el) => {
+    el.disabled = isBusy;
   });
 }
 
@@ -88,7 +90,11 @@ function getAuthors() {
 }
 
 function syncCorrespondingAuthor() {
-  setField("correspondingAuthor", authorNamesLine(getAuthors()));
+  const field = getField("correspondingAuthor");
+  // Only auto-fill if the field is currently empty
+  if (!field.value.trim()) {
+    field.value = authorNamesLine(getAuthors());
+  }
 }
 
 function createAuthorRow(author = {}) {
@@ -98,7 +104,6 @@ function createAuthorRow(author = {}) {
   row.querySelector("[data-author-orcid]").value =
     author.orcid || author.authorOrcid || "";
   authorsList.appendChild(fragment);
-  syncCorrespondingAuthor();
 }
 
 function setAuthors(authors) {
@@ -114,7 +119,6 @@ function setAuthors(authors) {
   }
 
   cleanAuthors.forEach((author) => createAuthorRow(author));
-  syncCorrespondingAuthor();
 }
 
 function normalizeAuthorsFromArticle(article) {
@@ -138,9 +142,53 @@ function normalizeAuthorsFromArticle(article) {
   }));
 }
 
+/**
+ * Converts date from various formats to YYYY-MM-DD for <input type="date">
+ */
+function formatDateForInput(dateStr) {
+  if (!dateStr) return "";
+  
+  const clean = dateStr.trim();
+  
+  // Try to parse DD-MM-YYYY
+  const parts = clean.split(/[-\/.]/);
+  if (parts.length === 3) {
+    let day, month, year;
+    if (parts[0].length === 4) {
+      // YYYY-MM-DD
+      [year, month, day] = parts;
+    } else {
+      // DD-MM-YYYY
+      [day, month, year] = parts;
+    }
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+  
+  try {
+    const d = new Date(clean);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString().split('T')[0];
+    }
+  } catch (e) {}
+  
+  return "";
+}
+
+/**
+ * Converts YYYY-MM-DD to DD-MM-YYYY for LaTeX
+ */
+function formatDateForLatex(dateStr) {
+  if (!dateStr) return "";
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  const [year, month, day] = parts;
+  return `${day}-${month}-${year}`;
+}
 function fillForm(article) {
   const defaults = {
     articleType: "Research Article",
+    journalShort: "Int. Jr. of Contemp. Res. in Multi.",
+    bannerPath: "banner.png",
     issn: "2583-7397",
     pages: "01-03",
     volume: "5",
@@ -155,15 +203,15 @@ function fillForm(article) {
   };
   const fields = [
     "articleType",
+    "journalShort",
+    "bannerPath",
     "issn",
     "title",
     "affiliation",
+    "correspondingAuthor",
     "doi",
     "abstract",
     "keywords",
-    "receivedDate",
-    "acceptedDate",
-    "publishedDate",
     "pages",
     "volume",
     "issue",
@@ -178,11 +226,24 @@ function fillForm(article) {
     "authorImage",
   ];
 
+
   fields.forEach((name) =>
     setField(name, article[name] ?? defaults[name] ?? ""),
   );
+  
+  // Dates
+  setField("receivedDate", formatDateForInput(article.receivedDate));
+  setField("acceptedDate", formatDateForInput(article.acceptedDate));
+  setField("publishedDate", formatDateForInput(article.publishedDate));
+
   setAuthors(normalizeAuthorsFromArticle(article));
-  syncCorrespondingAuthor();
+  
+  // Only auto-fill corresponding author if not provided by extraction
+  if (article.correspondingAuthor) {
+    setField("correspondingAuthor", article.correspondingAuthor);
+  } else {
+    syncCorrespondingAuthor();
+  }
 
   if (
     Array.isArray(article.references) &&
@@ -199,11 +260,16 @@ function collectArticle() {
   for (const [key, value] of data.entries()) {
     article[key] = String(value).trim();
   }
+  
+  // Convert dates back to DD-MM-YYYY
+  article.receivedDate = formatDateForLatex(article.receivedDate);
+  article.acceptedDate = formatDateForLatex(article.acceptedDate);
+  article.publishedDate = formatDateForLatex(article.publishedDate);
+
   const authors = getAuthors();
-  const names = authorNamesLine(authors);
   article.authorsList = authors;
-  article.authors = names;
-  article.correspondingAuthor = names;
+  article.authors = authorNamesLine(authors);
+  
   article.orcid = authors[0] ? authors[0].orcid : "";
   article.authorOrcid = article.orcid;
   return article;
@@ -353,6 +419,54 @@ async function generate(pdf) {
   }
 }
 
+async function uploadBodyImage() {
+  if (!bodyImageUpload.files.length) {
+    return;
+  }
+
+  const body = new FormData();
+  body.append("image", bodyImageUpload.files[0]);
+
+  setBusy(true);
+  bodyImageResult.textContent = "Uploading image...";
+  try {
+    const payload = await requestJson("/api/upload-image", {
+      method: "POST",
+      body,
+    });
+    const latexCode = `\\begin{center}\n\\includegraphics[width=0.8\\linewidth]{${payload.imageUrl}}\n\\end{center}`;
+    bodyImageResult.innerHTML = `Success! Copy this into the Article Body:<br/><code style="display:block;background:#eee;padding:5px;margin-top:5px;user-select:all;word-break:break-all;">${latexCode}</code>`;
+  } catch (error) {
+    bodyImageResult.textContent = `Upload failed: ${error.message}`;
+  } finally {
+    setBusy(false);
+  }
+}
+
+async function clearFolder(folder) {
+  if (!confirm(`Are you sure you want to clear all files in the ${folder} folder?`)) {
+    return;
+  }
+
+  setBusy(true);
+  try {
+    const payload = await requestJson("/api/clear-files", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ folder }),
+    });
+    alert(payload.message);
+    if (folder === "generated") {
+      setDownloads({});
+      setStatus("No file generated yet.");
+    }
+  } catch (error) {
+    alert(`Failed to clear folder: ${error.message}`);
+  } finally {
+    setBusy(false);
+  }
+}
+
 document
   .querySelector("#extractDataFile")
   .addEventListener("click", extractSelectedFile);
@@ -360,17 +474,19 @@ document
   .querySelector("#extractUpload")
   .addEventListener("click", extractUploadedFile);
 document
-  .querySelector("#generateTex")
-  .addEventListener("click", () => generate(false));
-document
   .querySelector("#generatePdf")
   .addEventListener("click", () => generate(true));
 document
   .querySelector("#addAuthor")
-  .addEventListener("click", () => createAuthorRow());
+  .addEventListener("click", () => {
+    createAuthorRow();
+    syncCorrespondingAuthor();
+  });
+document.querySelector("#clearUploads").addEventListener("click", () => clearFolder("uploads"));
+document.querySelector("#clearGenerated").addEventListener("click", () => clearFolder("generated"));
 authorImageUpload.addEventListener("change", uploadAuthorImage);
+bodyImageUpload.addEventListener("change", uploadBodyImage);
 
-authorsList.addEventListener("input", syncCorrespondingAuthor);
 authorsList.addEventListener("click", (event) => {
   if (!event.target.classList.contains("remove-author")) {
     return;
@@ -380,7 +496,6 @@ authorsList.addEventListener("click", (event) => {
   if (!authorsList.querySelector(".author-row")) {
     createAuthorRow();
   }
-  syncCorrespondingAuthor();
 });
 
 form.addEventListener("reset", () => {
