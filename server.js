@@ -7,6 +7,44 @@ const express = require("express");
 const multer = require("multer");
 const QRCode = require("qrcode");
 
+const os = require("os");
+
+function getLocalIP() {
+  const interfaces = os.networkInterfaces();
+
+  let candidate = null;
+
+  for (const name of Object.keys(interfaces)) {
+    for (const net of interfaces[name]) {
+      if (net.family === "IPv4" && !net.internal) {
+        // ❌ Skip VirtualBox / VMware / Docker
+        if (
+          name.toLowerCase().includes("virtual") ||
+          name.toLowerCase().includes("vmware") ||
+          name.toLowerCase().includes("docker")
+        ) {
+          continue;
+        }
+
+        // ✅ Prefer WiFi / Ethernet with gateway
+        if (!candidate) candidate = net.address;
+
+        // 🎯 Strong preference for WiFi
+        if (
+          name.toLowerCase().includes("wi-fi") ||
+          name.toLowerCase().includes("wifi")
+        ) {
+          return net.address;
+        }
+      }
+    }
+  }
+
+  return candidate || "localhost";
+}
+
+const localIP = getLocalIP();
+
 const { extractArticleFromFile } = require("./src/extract");
 const { normalizeArticle, renderLatex, makeSlug } = require("./src/latex");
 
@@ -68,7 +106,9 @@ const bannerUpload = multer({
       cb(null, true);
       return;
     }
-    cb(new Error("Only .png, .jpg, and .jpeg images are supported for banners."));
+    cb(
+      new Error("Only .png, .jpg, and .jpeg images are supported for banners."),
+    );
   },
 });
 
@@ -374,7 +414,10 @@ app.post("/api/clear-files", async (req, res, next) => {
       files.map((file) => fs.unlink(path.join(targetDir, file))),
     );
 
-    res.json({ ok: true, message: `Cleared ${files.length} files from ${folder}.` });
+    res.json({
+      ok: true,
+      message: `Cleared ${files.length} files from ${folder}.`,
+    });
   } catch (error) {
     next(error);
   }
@@ -393,7 +436,7 @@ app.post(
       // Preserve original name or sanitize it
       const originalName = req.file.originalname;
       const targetPath = path.join(BANNER_DIR, originalName);
-      
+
       // Move from temp path to the original name in banner dir
       await fs.rename(req.file.path, targetPath);
 
@@ -410,7 +453,7 @@ app.post(
 app.get("/api/banners", async (_req, res, next) => {
   try {
     const files = await fs.readdir(BANNER_DIR);
-    const banners = files.filter(f => /\.(png|jpg|jpeg)$/i.test(f));
+    const banners = files.filter((f) => /\.(png|jpg|jpeg)$/i.test(f));
     res.json({ banners });
   } catch (error) {
     next(error);
@@ -425,9 +468,11 @@ async function startServer(port) {
 
   const server = app.listen(port, () => {
     const address = server.address();
-    console.log(
-      `Article LaTeX Generator running at http://localhost:${address.port}`,
-    );
+    console.log(`
+      🚀 Server running:
+      ➡ Local:    http://localhost:${address.port}
+      ➡ Network:  http://${localIP}:${address.port}
+      `);
   });
 
   server.on("error", (error) => {
