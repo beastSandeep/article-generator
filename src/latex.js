@@ -3,28 +3,33 @@ const { parseSections, normalizeWhitespace } = require("./text");
 /**
  * Advanced LaTeX renderer that preserves math and common LaTeX commands.
  */
-function smartEscape(text) {
+function smartEscape(text, options = {}) {
   if (!text) return "";
 
-  // 1. Split text by math delimiters to protect them ($...$, $$...$$, \(...\), \[...\])
+  // 1. Split text by math delimiters ($...$, $$...$$, \(...\), \[...\])
   const mathParts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g);
   
   return mathParts.map((part, index) => {
     if (index % 2 === 1) return part; // Protected math block
     
-    // 2. Identify and protect LaTeX commands/environments
-    // Refined regex to match commands and multiple brace groups: \cmd{...}{...} or \cmd[...]
-    const commandRegex = /(\\[a-zA-Z*]+(?:\[[^\]]*\])?(?:\{[^{}]*\})*|\\\\)/g;
-    const subParts = part.split(commandRegex);
+    // 2. Protect LaTeX commands, line breaks, and optionally ampersands
+    const tokens = ["\\\\[a-zA-Z*]+(?:\\[[^\\]]*\\])?(?:\\{[^{}]*\\})*", "\\\\\\\\"];
+    if (options.preserveAmpersand) {
+      tokens.push("&");
+    }
     
-    return subParts.map((sub, subIndex) => {
-      if (subIndex % 2 === 1) return sub; // Protected command
+    const commandRegex = new RegExp(`(${tokens.join("|")})`, "g");
+    const segments = part.split(commandRegex);
+    
+    return segments.map((seg, segIndex) => {
+      // If it's a matched token (command, \\, or protected &), return as-is
+      if (segIndex % 2 === 1) {
+        return seg;
+      }
       
       // 3. For actual plain text, escape standard LaTeX special characters
-      let processed = sub;
-      
-      processed = processed
-        .replace(/\\/g, "___LATEX_BS___")
+      return seg
+        .replace(/\\/g, "\\textbackslash{}")
         .replace(/&/g, "\\&")
         .replace(/%/g, "\\%")
         .replace(/#/g, "\\#")
@@ -32,10 +37,7 @@ function smartEscape(text) {
         .replace(/{/g, "\\{")
         .replace(/}/g, "\\}")
         .replace(/\^/g, "\\textasciicircum{}")
-        .replace(/~/g, "\\textasciitilde{}")
-        .replace(/___LATEX_BS___/g, "\\textbackslash{}");
-
-      return processed;
+        .replace(/~/g, "\\textasciitilde{}");
     }).join("");
   }).join("");
 }
@@ -51,15 +53,12 @@ function latexParagraphs(value) {
     .map((paragraph) => {
       const trimmed = paragraph.trim();
       
-      // Improved raw block detection: 
-      // If it starts with \begin or \noindent\begin or $$, treat it as raw LaTeX.
-      const isRaw = /^(\\noindent\s*)?\\begin\{/.test(trimmed) || 
-                    trimmed.startsWith("$$") ||
-                    trimmed.startsWith("\\begin [") ||
-                    trimmed.startsWith("\\begin{tabular}");
+      // Raw block detection (contains \begin{...} or is a block formula)
+      const isRaw = trimmed.includes("\\begin{") || 
+                    trimmed.startsWith("$$");
       
       if (isRaw) {
-        return trimmed;
+        return smartEscape(trimmed, { preserveAmpersand: true });
       }
       
       return smartEscape(trimmed);

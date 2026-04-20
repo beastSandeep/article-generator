@@ -12,9 +12,11 @@ const bodyImageUpload = document.querySelector("#bodyImageUpload");
 const bodyImageResult = document.querySelector("#bodyImageResult");
 
 function setBusy(isBusy) {
-  document.querySelectorAll("button, input[type='file'], input[type='number']").forEach((el) => {
-    el.disabled = isBusy;
-  });
+  document
+    .querySelectorAll("button, input[type='file'], input[type='number']")
+    .forEach((el) => {
+      el.disabled = isBusy;
+    });
 }
 
 function setStatus(message, detailText = "") {
@@ -147,9 +149,9 @@ function normalizeAuthorsFromArticle(article) {
  */
 function formatDateForInput(dateStr) {
   if (!dateStr) return "";
-  
+
   const clean = dateStr.trim();
-  
+
   // Try to parse DD-MM-YYYY
   const parts = clean.split(/[-\/.]/);
   if (parts.length === 3) {
@@ -161,16 +163,16 @@ function formatDateForInput(dateStr) {
       // DD-MM-YYYY
       [day, month, year] = parts;
     }
-    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
   }
-  
+
   try {
     const d = new Date(clean);
     if (!isNaN(d.getTime())) {
-      return d.toISOString().split('T')[0];
+      return d.toISOString().split("T")[0];
     }
   } catch (e) {}
-  
+
   return "";
 }
 
@@ -179,7 +181,7 @@ function formatDateForInput(dateStr) {
  */
 function formatDateForLatex(dateStr) {
   if (!dateStr) return "";
-  const parts = dateStr.split('-');
+  const parts = dateStr.split("-");
   if (parts.length !== 3) return dateStr;
   const [year, month, day] = parts;
   return `${day}-${month}-${year}`;
@@ -195,7 +197,7 @@ function fillForm(article) {
     issue: "1",
     year: "2026",
     issuePeriod: "Jan-Feb",
-    journalWebsite: "https://ijaicitjournal.com/",
+    journalWebsite: "www.multiarticlesjournal.com ",
     qrUrl: "",
     citation: "",
     authorBio: "",
@@ -226,18 +228,17 @@ function fillForm(article) {
     "authorImage",
   ];
 
-
   fields.forEach((name) =>
     setField(name, article[name] ?? defaults[name] ?? ""),
   );
-  
+
   // Dates
   setField("receivedDate", formatDateForInput(article.receivedDate));
   setField("acceptedDate", formatDateForInput(article.acceptedDate));
   setField("publishedDate", formatDateForInput(article.publishedDate));
 
   setAuthors(normalizeAuthorsFromArticle(article));
-  
+
   // Only auto-fill corresponding author if not provided by extraction
   if (article.correspondingAuthor) {
     setField("correspondingAuthor", article.correspondingAuthor);
@@ -260,7 +261,7 @@ function collectArticle() {
   for (const [key, value] of data.entries()) {
     article[key] = String(value).trim();
   }
-  
+
   // Convert dates back to DD-MM-YYYY
   article.receivedDate = formatDateForLatex(article.receivedDate);
   article.acceptedDate = formatDateForLatex(article.acceptedDate);
@@ -269,11 +270,111 @@ function collectArticle() {
   const authors = getAuthors();
   article.authorsList = authors;
   article.authors = authorNamesLine(authors);
-  
+
   article.orcid = authors[0] ? authors[0].orcid : "";
   article.authorOrcid = article.orcid;
   return article;
 }
+
+document.addEventListener("alpine:init", () => {
+  Alpine.data("mathHelper", () => ({
+    formula: "",
+    insert(snippet) {
+      this.formula += snippet;
+      this.updatePreview();
+    },
+    setExample(ex) {
+      this.formula = ex;
+      this.updatePreview();
+    },
+    updatePreview() {
+      this.$nextTick(() => {
+        const el = this.$refs.mathPreview;
+        if (!this.formula.trim()) {
+          el.innerHTML =
+            '<span style="color:var(--muted); font-size: 1rem;">Preview will appear here...</span>';
+          return;
+        }
+        if (window.MathJax) {
+          el.innerHTML = this.formula.includes("$")
+            ? this.formula
+            : "$$ " + this.formula + " $$";
+          MathJax.typesetPromise([el]);
+        } else {
+          el.textContent = this.formula;
+        }
+      });
+    },
+    clearFormula() {
+      this.formula = "";
+      this.$refs.mathPreview.innerHTML =
+        '<span style="color:var(--muted); font-size: 1rem;">Preview will appear here...</span>';
+    },
+    copyToBody() {
+      const body = document.querySelector("textarea[name='bodyText']");
+      const start = body.selectionStart;
+      const end = body.selectionEnd;
+      const finalMath = this.formula.trim();
+      body.value =
+        body.value.substring(0, start) +
+        finalMath +
+        body.value.substring(end);
+      body.focus();
+      body.dispatchEvent(new Event("input"));
+      this.clearFormula();
+    },
+  }));
+
+  Alpine.data("tableHelper", () => ({
+    rows: 3,
+    cols: 3,
+    hasHeader: true,
+    data: [],
+    latex: "",
+    init() {
+      this.buildGrid();
+    },
+    buildGrid() {
+      const newData = [];
+      for (let r = 0; r < this.rows; r++) {
+        const row = [];
+        for (let c = 0; c < this.cols; c++) {
+          row.push(this.data[r]?.[c] || "");
+        }
+        newData.push(row);
+      }
+      this.data = newData;
+    },
+    reset() {
+      this.rows = 3;
+      this.cols = 3;
+      this.data = [];
+      this.latex = "";
+      this.buildGrid();
+    },
+    generate() {
+      let res =
+        "\\begin{center}\n\\begin{tabular}{" +
+        "|l".repeat(this.cols) +
+        "|}\n\\hline\n";
+      this.data.forEach((row, r) => {
+        const cells = row.map((cell, c) => {
+          let val = cell.trim() || "~";
+          return this.hasHeader && r === 0 ? `\\textbf{${val}}` : val;
+        });
+        res += cells.join(" & ") + " \\\\\n\\hline\n";
+      });
+      res += "\\end{tabular}\n\\end{center}";
+      this.latex = res;
+    },
+    copyToBody() {
+      const body = document.querySelector("textarea[name='bodyText']");
+      body.value = body.value.trim() + "\n\n" + this.latex;
+      body.dispatchEvent(new Event("input"));
+      alert("Table code appended to Article Body!");
+    },
+  }));
+});
 
 async function requestJson(url, options = {}) {
   const response = await fetch(url, options);
@@ -402,6 +503,12 @@ async function generate(pdf) {
     });
 
     setDownloads(payload);
+    if (payload.pdfUrl) {
+      // Dispatch event to Alpine live preview
+      window.dispatchEvent(new CustomEvent('update-preview', { 
+        detail: { pdfUrl: payload.pdfUrl } 
+      }));
+    }
     if (payload.pdfError) {
       setStatus(
         "The .tex file was created, but PDF compilation failed.",
@@ -444,7 +551,11 @@ async function uploadBodyImage() {
 }
 
 async function clearFolder(folder) {
-  if (!confirm(`Are you sure you want to clear all files in the ${folder} folder?`)) {
+  if (
+    !confirm(
+      `Are you sure you want to clear all files in the ${folder} folder?`,
+    )
+  ) {
     return;
   }
 
@@ -476,14 +587,16 @@ document
 document
   .querySelector("#generatePdf")
   .addEventListener("click", () => generate(true));
+document.querySelector("#addAuthor").addEventListener("click", () => {
+  createAuthorRow();
+  syncCorrespondingAuthor();
+});
 document
-  .querySelector("#addAuthor")
-  .addEventListener("click", () => {
-    createAuthorRow();
-    syncCorrespondingAuthor();
-  });
-document.querySelector("#clearUploads").addEventListener("click", () => clearFolder("uploads"));
-document.querySelector("#clearGenerated").addEventListener("click", () => clearFolder("generated"));
+  .querySelector("#clearUploads")
+  .addEventListener("click", () => clearFolder("uploads"));
+document
+  .querySelector("#clearGenerated")
+  .addEventListener("click", () => clearFolder("generated"));
 authorImageUpload.addEventListener("change", uploadAuthorImage);
 bodyImageUpload.addEventListener("change", uploadBodyImage);
 

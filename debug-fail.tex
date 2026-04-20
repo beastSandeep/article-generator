@@ -1,0 +1,314 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[top=0.8in, bottom=0.8in, left=1cm, right=1cm]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\usepackage[varg]{newtxmath}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{setspace}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage[most]{tcolorbox}
+\usepackage{multicol}
+\usepackage{amsmath}
+\usepackage{booktabs, array, multirow}
+\usepackage[colorlinks=true, linkcolor=linkblue, urlcolor=linkblue]{hyperref}
+
+\setstretch{1.15}
+\sloppy
+\emergencystretch=2em
+
+% ---------------- COLORS ----------------
+\definecolor{linkblue}{RGB}{0,0,200}
+\definecolor{lightgray}{RGB}{220,220,220}
+\definecolor{journalblue}{RGB}{0,31,95}
+\definecolor{journalred}{RGB}{255,0,0}
+
+% ---------------- HEADER ----------------
+\pagestyle{fancy}
+\fancyhf{}
+
+\setlength{\headheight}{23pt}
+\setlength{\headsep}{10pt}
+
+\fancyhead[L]{%
+  \fontsize{9}{12}\selectfont
+  \spaceskip=0.2em
+  \textcolor{journalblue}{\textbf{\textit{Generator Testing Journal}}}%
+}
+
+\fancyhead[C]{%
+  \fontsize{9}{12}\selectfont
+  \spaceskip=0.2em
+  \textcolor{journalred}{\textbf{\textit{VERIFIED BUILD}}}%
+}
+
+\fancyhead[R]{%
+  \fontsize{9}{12}\selectfont
+  \spaceskip=0.2em
+  \textcolor{journalblue}{\textbf{\textit{Volume 5 Issue 1 [ Jan-Feb ] Year 2026}}}%
+}
+
+\renewcommand{\headrulewidth}{0.8pt}
+\renewcommand{\headrule}{\hbox to\headwidth{\color{journalblue}\leaders\hrule height \headrulewidth\hfill}}
+
+% ---------------- FOOTER ----------------
+\fancyfoot[C]{%
+\begin{minipage}{\textwidth}
+    \rule{\textwidth}{0.5pt}\\[3pt]
+    \begin{minipage}{0.05\textwidth}
+        \small \thepage
+    \end{minipage}%
+    \begin{minipage}{0.02\textwidth}
+        \centering
+        \raisebox{0.5\height}{\textcolor{journalblue}{\textbar}}
+    \end{minipage}%
+    \begin{minipage}{0.9\textwidth}
+        \fontsize{7}{8}\selectfont
+        \textcopyright{} 2026 Alice Tester. This is an open-access article distributed under the terms of the Creative Commons Attribution 4.0 International License (CC BY 4.0).
+        \href{https://creativecommons.org/licenses/by/4.0/}{https://creativecommons.org/licenses/by/4.0/}
+    \end{minipage}%
+\end{minipage}%
+}
+
+\begin{document}
+
+% ---------------- BANNER ----------------
+\noindent
+\includegraphics[width=\textwidth]{banner.png}
+
+\vspace{4pt}
+
+% ---------------- ARTICLE TYPE STRIP ----------------
+\noindent
+\colorbox{lightgray}{%
+    \parbox{\textwidth}{%
+        \vspace{2pt}
+        \fontsize{10}{10}\selectfont
+        \textcolor{journalblue}{\textbf{\textit{Technical Report}}}%
+        \vspace{2pt}%
+    }%
+}
+
+% ---------------- TITLE ----------------
+\begin{center}
+    \fontsize{16}{20}\bfseries\textbf{%
+    Verification of Rich Content
+    }%
+\end{center}
+
+% ---------------- AUTHOR BLOCK ----------------
+\begin{center}
+{\fontsize{11}{13}\selectfont 
+\textbf{Alice Tester}} \\[6pt]
+
+{\fontsize{10}{12}\selectfont
+
+}
+\end{center}
+
+% ---------------- CORRESPONDING + DOI ----------------
+\noindent
+\begin{minipage}[t]{0.6\textwidth}
+    \fontsize{10}{12}\selectfont
+    \textcolor{journalblue}{\textbf{Corresponding Author:}}
+    Alice Tester
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.40\textwidth}
+    \fontsize{10}{12}\selectfont
+    \raggedleft\hspace{0pt}
+    
+\end{minipage}
+
+\vspace{6pt}
+
+% ---------------- ABSTRACT + MANUSCRIPT INFORMATION ----------------
+\noindent
+\begin{tcolorbox}[
+    colback=white,
+    colframe=black!70,
+    boxrule=0.6pt,
+    arc=0pt,
+    left=0pt,
+    right=0pt,
+    top=0pt,
+    bottom=0pt,
+]
+
+\begin{minipage}[t]{0.64\textwidth}
+
+\fontsize{9}{11}\selectfont
+
+\noindent
+\colorbox{lightgray}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\vspace{2pt}
+\textcolor{journalblue}{\textbf{Abstract}}
+\vspace{2pt}
+}}
+
+\vspace{4pt}
+
+
+
+\end{minipage}
+\hfill
+\vrule width 0.5pt
+\hfill
+\begin{minipage}[t]{0.34\textwidth}
+
+\fontsize{8.5}{10}\selectfont
+
+\noindent
+\colorbox{lightgray}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\vspace{2pt}
+\centering \textcolor{journalblue}{\textbf{Manuscript Information}}
+\vspace{2pt}
+}}
+
+\begin{itemize}[leftmargin=*, itemsep=-4pt]
+\item \textbf{ISSN No:} 2583-7397
+\item IJCRM: 5(1); 2026: 01-03
+\item \textcopyright{}2026, All Rights Reserved
+\item \textbf{Plagiarism Checked:} Yes
+\item \textbf{Peer Review Process:} Yes
+\end{itemize}
+
+\vspace{4pt}
+\hrule
+\vspace{4pt}
+
+\noindent
+\colorbox{lightgray}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\vspace{2pt}
+\centering \textcolor{journalblue}{\textbf{How to Cite this Article}}
+\vspace{2pt}
+}}
+
+\vspace{2pt}
+
+Alice Tester. Verification of Rich Content. Int J Contemp Res Multidiscip. 2026;5(1):01-03.
+
+\vspace{4pt}
+\hrule
+\vspace{4pt}
+
+\centering
+\textcolor{journalblue}{\textbf{Access this Article Online}}
+
+\vspace{4pt}
+
+\includegraphics[width=0.4\linewidth]{qr.png}
+
+\vspace{2pt}
+
+{\fontsize{8}{9}\selectfont
+\textcolor{journalblue}{https://ijaicitjournal.com/}
+}
+
+\end{minipage}
+
+\end{tcolorbox}
+
+% ---------------- KEYWORDS ----------------
+\noindent
+\begin{minipage}[t]{1\textwidth}
+    \fontsize{10}{12}\selectfont
+    \textcolor{journalblue}{\textbf{KEYWORDS:}} 
+    
+\end{minipage}
+
+\vspace{6pt}
+
+\setlength{\columnsep}{20pt}
+\begin{multicols}{2}
+\fontsize{9}{11}\selectfont
+
+\vspace{8pt}
+\noindent
+\textcolor{journalblue}{\textbf{INTRODUCTION}}
+
+\noindent
+This paragraph tests inline math $ \alpha + \beta = \gamma $ and special characters like \& and \%.
+
+Here is a complex block formula generated by the utility:
+$$ \sigma = \sqrt{\frac{\sum_{i=1}^{n} (x_i - \mu)^2}{N}} $$
+
+Below is a table generated by the Table Builder:
+\_\_\_PROTECTED\_CMD\_0\_\_\_
+\_\_\_PROTECTED\_CMD\_1\_\_\_
+\_\_\_PROTECTED\_CMD\_2\_\_\_
+\_\_\_PROTECTED\_CMD\_3\_\_\_ \& \_\_\_PROTECTED\_CMD\_4\_\_\_ \& \_\_\_PROTECTED\_CMD\_5\_\_\_ \_\_\_PROTECTED\_BREAK\_12\_\_\_
+\_\_\_PROTECTED\_CMD\_6\_\_\_
+Math Helper \& Working \& 100\textbackslash\{\}\% \_\_\_PROTECTED\_BREAK\_13\_\_\_
+\_\_\_PROTECTED\_CMD\_7\_\_\_
+Table Builder \& Verified \& 10/10 \_\_\_PROTECTED\_BREAK\_14\_\_\_
+\_\_\_PROTECTED\_CMD\_8\_\_\_
+Live Preview \& Enabled \& Yes \_\_\_PROTECTED\_BREAK\_15\_\_\_
+\_\_\_PROTECTED\_CMD\_9\_\_\_
+\_\_\_PROTECTED\_CMD\_10\_\_\_
+\_\_\_PROTECTED\_CMD\_11\_\_\_
+
+Final paragraph with a DOI link: https://doi.org/10.1234/test.verify
+
+
+
+% ---------------- AUTHOR + LICENSE BOX ----------------
+\noindent
+\begin{tcolorbox}[
+    colback=white,
+    colframe=black!60,
+    boxrule=0.5pt,
+    arc=0pt,
+    left=2pt,
+    right=2pt,
+    top=2pt,
+    bottom=2pt,
+    boxsep=0pt,
+]
+
+\noindent
+\colorbox{black!10}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\centering
+\vspace{2pt}
+\textbf{Creative Commons (CC) License}
+\vspace{2pt}
+}}
+
+\fontsize{7}{9}\selectfont This article is an open-access article distributed under the terms and conditions of the Creative Commons Attribution 4.0 International License (CC BY 4.0). This license permits use, distribution, and reproduction according to the license terms, provided the original author and source are credited.
+
+\vspace{2pt}
+{\color{black!40}\hrule height 0.3pt}
+\vspace{2pt}
+
+\noindent
+\colorbox{black!10}{
+\parbox{\dimexpr\linewidth-2\fboxsep}{
+\centering
+\vspace{2pt}
+\textbf{About the corresponding author}
+\vspace{2pt}
+}}
+
+\noindent
+\begin{minipage}[t]{0.20\textwidth}
+\vspace{0pt}
+\includegraphics[width=\linewidth]{image.png}
+\end{minipage}
+\hspace{8pt}
+\begin{minipage}[t]{0.75\textwidth}
+
+\fontsize{7}{9}\selectfont \textbf{Alice Tester} is associated with the institution.
+
+\end{minipage}
+
+\end{tcolorbox}
+
+\end{multicols}
+
+\end{document}
