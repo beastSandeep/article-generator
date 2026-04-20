@@ -7,7 +7,7 @@ function smartEscape(text, options = {}) {
   if (!text) return "";
 
   // 1. Split text by math delimiters ($...$, $$...$$, \(...\), \[...\])
-  const mathParts = text.split(/(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g);
+  const mathParts = text.split(/(\$\$[\s\S]*?\$?\$|\$[\s\S]*?\$|\\\[[\s\S]*?\\\]|\\\(.*?\\\))/g);
   
   return mathParts.map((part, index) => {
     if (index % 2 === 1) return part; // Protected math block
@@ -22,7 +22,6 @@ function smartEscape(text, options = {}) {
     const segments = part.split(commandRegex);
     
     return segments.map((seg, segIndex) => {
-      // If it's a matched token (command, \\, or protected &), return as-is
       if (segIndex % 2 === 1) {
         return seg;
       }
@@ -225,7 +224,7 @@ function normalizeArticle(input) {
     authorsList: normalizedAuthorsList,
     authors: normalizedAuthorNames,
     affiliation: article.affiliation || "",
-    correspondingAuthor: normalizedAuthorNames,
+    correspondingAuthor: article.correspondingAuthor || normalizedAuthorNames,
     authorOrcid,
     orcid: authorOrcid,
     doi: article.doi || "",
@@ -527,14 +526,14 @@ ${renderFontSetup(article)}
 
 % ---------------- TITLE ----------------
 \begin{center}
-    \fontsize{16}{20}\bfseries\textbf{%
+    \fontsize{18}{22}\bfseries\textbf{%
     ${smartEscape(article.title)}
     }%
 \end{center}
 
 % ---------------- AUTHOR BLOCK ----------------
 \begin{center}
-{\fontsize{11}{13}\selectfont 
+{\fontsize{11}{14}\selectfont 
 ${authorLinks}} \\[6pt]
 
 {\fontsize{10}{12}\selectfont
@@ -547,7 +546,7 @@ ${latexParagraphs(article.affiliation)}
 \begin{minipage}[t]{0.6\textwidth}
     \fontsize{10}{12}\selectfont
     \textcolor{journalblue}{\textbf{Corresponding Author:}}
-    ${correspondingAuthorLinks}
+    ${smartEscape(article.correspondingAuthor)}
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.40\textwidth}
@@ -562,7 +561,7 @@ ${latexParagraphs(article.affiliation)}
 \noindent
 \begin{tcolorbox}[
     colback=white,
-    colframe=black!70,
+    colframe=lightgray,
     boxrule=0.6pt,
     arc=0pt,
     left=0pt,
@@ -573,7 +572,7 @@ ${latexParagraphs(article.affiliation)}
 
 \begin{minipage}[t]{0.64\textwidth}
 
-\fontsize{9}{11}\selectfont
+\fontsize{10}{12}\selectfont
 
 \noindent
 \colorbox{lightgray}{
@@ -589,11 +588,11 @@ ${latexParagraphs(article.abstract)}
 
 \end{minipage}
 \hfill
-\vrule width 0.5pt
+{\color{lightgray}\vrule width 0.5pt}
 \hfill
 \begin{minipage}[t]{0.34\textwidth}
 
-\fontsize{8.5}{10}\selectfont
+\fontsize{8}{10}\selectfont
 
 \noindent
 \colorbox{lightgray}{
@@ -608,7 +607,7 @@ ${renderMetadata(article)}
 \end{itemize}
 
 \vspace{4pt}
-\hrule
+{\color{lightgray}\hrule}
 \vspace{4pt}
 
 \noindent
@@ -624,7 +623,7 @@ ${renderMetadata(article)}
 ${renderCitation(article)}
 
 \vspace{4pt}
-\hrule
+{\color{lightgray}\hrule}
 \vspace{4pt}
 
 \centering
@@ -656,7 +655,7 @@ ${renderCitation(article)}
 
 \setlength{\columnsep}{20pt}
 \begin{multicols}{2}
-\fontsize{9}{11}\selectfont
+\fontsize{10}{12}\selectfont
 
 ${renderSections(article.sections)}
 
@@ -685,7 +684,7 @@ ${renderReferences(article.references)}
 \vspace{2pt}
 }}
 
-\fontsize{7}{9}\selectfont This article is an open-access article distributed under the terms and conditions of the ${smartEscape(article.licenseName)}. This license permits use, distribution, and reproduction according to the license terms, provided the original author and source are credited.
+\fontsize{8}{10}\selectfont This article is an open-access article distributed under the terms and conditions of the ${smartEscape(article.licenseName)}. This license permits use, distribution, and reproduction according to the license terms, provided the original author and source are credited.
 
 \vspace{2pt}
 {\color{black!40}\hrule height 0.3pt}
@@ -708,7 +707,7 @@ ${renderReferences(article.references)}
 \hspace{8pt}
 \begin{minipage}[t]{0.75\textwidth}
 
-\fontsize{7}{9}\selectfont ${authorBio}
+\fontsize{8}{10}\selectfont ${authorBio}
 
 \end{minipage}
 
