@@ -192,7 +192,7 @@ function fillForm(article) {
     journalShort: "Int. Jr. of Contemp. Res. in Multi.",
     bannerPath: "banner.png",
     issn: "2583-7397",
-    pages: "01-03",
+    pages: "1",
     volume: "5",
     issue: "1",
     year: "2026",
@@ -228,9 +228,15 @@ function fillForm(article) {
     "authorImage",
   ];
 
-  fields.forEach((name) =>
-    setField(name, article[name] ?? defaults[name] ?? ""),
-  );
+  fields.forEach((name) => {
+    let value = article[name] ?? defaults[name] ?? "";
+    if (name === "pages" && typeof value === "string") {
+      // Extract only the first number if it's a range like "01-03"
+      const match = value.match(/\d+/);
+      value = match ? match[0] : value;
+    }
+    setField(name, value);
+  });
 
   // Dates
   setField("receivedDate", formatDateForInput(article.receivedDate));

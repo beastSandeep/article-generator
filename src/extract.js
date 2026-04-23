@@ -413,7 +413,7 @@ function parseArticleText(rawText, sourceName = '') {
     receivedDate: '',
     acceptedDate: '',
     publishedDate: '',
-    pages: '01-03'
+    pages: '1'
   };
 }
 

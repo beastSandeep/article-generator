@@ -188,7 +188,7 @@ function normalizeArticle(input) {
     firstAuthorName(article.authors) ||
     article.correspondingAuthor ||
     "Author";
-  const pages = article.pages || "01-03";
+  const pages = article.pages || "1";
   const volume = article.volume || "5";
   const issue = article.issue || "1";
   const issuePeriod = article.issuePeriod || "Jan-Feb";
@@ -243,8 +243,7 @@ function normalizeArticle(input) {
     issue,
     year,
     pages,
-    issueLine:
-      article.issueLine || `IJCRM: ${volume}(${issue}); ${year}: ${pages}`,
+    issueLine: article.issueLine || `IJCRM: ${volume}(${issue}); ${year}: ${pages}`,
     plagiarismChecked: article.plagiarismChecked || "Yes",
     peerReviewProcess: article.peerReviewProcess || "Yes",
     citation: article.citation || "",
@@ -406,6 +405,7 @@ function renderFontSetup(article) {
 
 function renderLatex(input) {
   const article = normalizeArticle(input);
+  const startPage = parseInt(article.pages) || 1;
   const doi = normalizeDoi(article.doi);
   const authorLinks = renderAuthorLinks(article.authorsList, { bold: true });
   const correspondingAuthorLinks = renderAuthorLinks(article.authorsList);
@@ -494,6 +494,9 @@ ${renderFontSetup(article)}
     \end{minipage}%
 \end{minipage}%
 }
+
+\pagenumbering{arabic}
+\setcounter{page}{${startPage}}
 
 \begin{document}
 
