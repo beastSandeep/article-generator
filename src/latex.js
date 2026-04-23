@@ -442,6 +442,7 @@ ${renderFontSetup(article)}
 \usepackage{setspace}
 \usepackage{enumitem}
 \usepackage{graphicx}
+\usepackage[none]{hyphenat}
 \usepackage[most]{tcolorbox}
 \usepackage{multicol}
 \usepackage{amsmath}
