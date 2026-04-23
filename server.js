@@ -327,11 +327,16 @@ app.post("/api/generate", async (req, res, next) => {
       texUrl: `/download/${slug}.tex`,
     };
 
-    if (req.body.pdf) {
+    let finalPdfPath = null;
+    if (req.body.pdf || req.body.docx) {
       try {
         const pdf = await compilePdf(texPath, slug);
         result.engine = pdf.engine;
-        result.pdfUrl = `/download/${slug}.pdf`;
+        finalPdfPath = pdf.pdfPath;
+        
+        if (req.body.pdf) {
+            result.pdfUrl = `/download/${slug}.pdf`;
+        }
       } catch (error) {
         result.pdfError = true;
         result.error =

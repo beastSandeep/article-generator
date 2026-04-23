@@ -35,6 +35,13 @@ function setDownloads(result) {
     downloads.appendChild(link);
   }
 
+  if (result.docxUrl) {
+    const link = document.createElement("a");
+    link.href = result.docxUrl;
+    link.textContent = "Download .docx";
+    downloads.appendChild(link);
+  }
+
   if (result.pdfUrl) {
     const link = document.createElement("a");
     link.href = result.pdfUrl;
@@ -494,18 +501,23 @@ async function uploadAuthorImage() {
   }
 }
 
-async function generate(pdf) {
+async function generate(options = {}) {
+  const { pdf, docx } = options;
   setBusy(true);
   setDownloads({});
-  setStatus(
-    pdf ? "Generating LaTeX and compiling PDF..." : "Generating LaTeX...",
-  );
+  
+  let statusText = "Generating...";
+  if (pdf && docx) statusText = "Generating PDF and Word document...";
+  else if (pdf) statusText = "Generating LaTeX and compiling PDF...";
+  else if (docx) statusText = "Generating Word document...";
+  
+  setStatus(statusText);
 
   try {
     const payload = await requestJson("/api/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ article: collectArticle(), pdf }),
+      body: JSON.stringify({ article: collectArticle(), pdf, docx }),
     });
 
     setDownloads(payload);
@@ -592,7 +604,13 @@ document
   .addEventListener("click", extractUploadedFile);
 document
   .querySelector("#generatePdf")
-  .addEventListener("click", () => generate(true));
+  .addEventListener("click", () => generate({ pdf: true }));
+document
+  .querySelector("#generateWord")
+  .addEventListener("click", () => {
+    window.open("https://www.ilovepdf.com/pdf_to_word", "_blank");
+    setStatus("Redirected to iLovePDF. Please generate a PDF first, then upload it there for the best Word conversion.");
+  });
 document.querySelector("#addAuthor").addEventListener("click", () => {
   createAuthorRow();
   syncCorrespondingAuthor();
