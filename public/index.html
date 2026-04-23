@@ -48,6 +48,60 @@
     </style>
   </head>
   <body>
+    <div class="latex-toolbox" x-data="{ 
+      showMsg: false,
+      copySnippet(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(text).then(() => this.onSuccess());
+        } else {
+          // Fallback for non-secure contexts
+          const textArea = document.createElement('textarea');
+          textArea.value = text;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-9999px';
+          textArea.style.top = '0';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+          try {
+            document.execCommand('copy');
+            this.onSuccess();
+          } catch (err) {
+            console.error('Fallback copy failed', err);
+          }
+          document.body.removeChild(textArea);
+        }
+      },
+      onSuccess() {
+        this.showMsg = true;
+        setTimeout(() => this.showMsg = false, 2000);
+      }
+    }">
+      <h3>LaTeX Toolbox</h3>
+      <div class="toolbox-grid">
+        <button type="button" @click="copySnippet('\\\\ ')" title="Line Break">Break (\\)</button>
+        <button type="button" @click="copySnippet('\\newline ')" title="New Line">New Line</button>
+        <button type="button" @click="copySnippet('\\hspace{1cm} ')" title="Horizontal Space">H-Space</button>
+        <button type="button" @click="copySnippet('\\vspace{10pt}\n\n')" title="Vertical Space">V-Space</button>
+        <button type="button" @click="copySnippet('\\newpage\n')" title="Page Break">Page Brk</button>
+        <button type="button" @click="copySnippet('\\noindent ')" title="No Indent">No Indent</button>
+        <button type="button" @click="copySnippet('\\textbf{text}')" title="Bold Text">Bold</button>
+        <button type="button" @click="copySnippet('\\textit{text}')" title="Italic Text">Italic</button>
+        <button type="button" @click="copySnippet('\\underline{text}')" title="Underline Text">Underline</button>
+        <button type="button" @click="copySnippet('\\textsc{text}')" title="Small Caps">Sm Caps</button>
+        <button type="button" @click="copySnippet('\\textcolor{red}{text}')" title="Color Text">Color Red</button>
+        <button type="button" @click="copySnippet('\\begin{center}\ntext\n\\end{center}')" title="Center Alignment">Center</button>
+        <button type="button" @click="copySnippet('\\begin{itemize}\n  \\item \n\\end{itemize}')" title="Bullet List">Bullets</button>
+        <button type="button" @click="copySnippet('\\begin{enumerate}\n  \\item \n\\end{enumerate}')" title="Numbered List">Numbers</button>
+        <button type="button" @click="copySnippet('\\section{Title}')" title="Section Heading">Section</button>
+        <button type="button" @click="copySnippet('\\subsection{Title}')" title="Subsection Heading">Sub-Sec</button>
+        <button type="button" @click="copySnippet('^{super}')" title="Superscript">Super</button>
+        <button type="button" @click="copySnippet('_{sub}')" title="Subscript">Sub</button>
+      </div>
+      <div x-show="showMsg" x-transition class="copy-success">✓ Copied!</div>
+      <p class="hint">Click to copy to clipboard</p>
+    </div>
+
     <header class="topbar">
       <img
         src="/assets/banner.png"
@@ -356,11 +410,9 @@
 
           <div x-show="isExpanded" x-collapse class="section-content">
             <p class="hint">
-              Put section headings on their own lines. Supports:
-              <br />• <strong>Math:</strong> Use <code>$ \alpha $</code> or
-              <code>$$ \sum $$</code> <br />• <strong>Tables:</strong> Use
-              <code>\begin{tabular}...\end{tabular}</code> <br />•
-              <strong>Images:</strong> Upload below to get the LaTeX code.
+              <strong>Titles:</strong> <code>**Title**</code>, <code>ALL CAPS</code>, or keywords (Introduction, etc.).
+              <br /><strong>Normal:</strong> <code>-- Text --</code> to force normal (e.g. ACRONYMS).
+              <br /><strong>Rich:</strong> <code>$math$</code>, <code>$$block$$</code>, <code>\begin{tabular}</code>, or Images (upload below).
             </p>
             <textarea name="bodyText" rows="20"></textarea>
 

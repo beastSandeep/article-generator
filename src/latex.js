@@ -177,10 +177,6 @@ function latexAssetPath(value, fallback) {
   return raw.replace(/#/g, "\\#").replace(/%/g, "\\%");
 }
 
-function hasBengali(article) {
-  return /[\u0980-\u09FF]/.test(JSON.stringify(article));
-}
-
 function normalizeArticle(input) {
   const article = { ...(input || {}) };
   const authorsList = normalizeAuthorsList(article);
@@ -403,13 +399,6 @@ function renderAuthorLinks(authorsList, options = {}) {
 }
 
 function renderFontSetup(article) {
-  if (hasBengali(article)) {
-    return `\\usepackage{fontspec}
-\\IfFontExistsTF{Nirmala UI}{\\setmainfont{Nirmala UI}[Script=Bengali]}{\\setmainfont{Latin Modern Roman}}
-\\XeTeXlinebreaklocale "bn"
-\\XeTeXlinebreakskip = 0pt plus 1pt`;
-  }
-
   return `\\usepackage{fontspec}
 \\setmainfont{Times New Roman}
 \\usepackage[varg]{newtxmath}`;

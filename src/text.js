@@ -10,30 +10,49 @@ function normalizeWhitespace(value) {
 
 function isKnownHeading(line) {
   const trimmed = line.trim();
-  if (!trimmed) {
+  if (!trimmed || trimmed.length > 150) {
     return false;
   }
 
-  // Reject lines that look like LaTeX commands or table rows
-  if (trimmed.includes('&') || trimmed.includes('\\\\') || trimmed.startsWith('\\')) {
+  // 0. Force Normal Marker (New)
+  if (trimmed.startsWith('--') && trimmed.endsWith('--')) {
     return false;
   }
 
-  const knownEnglish =
-    /^(?:\d+(?:\.\d+)*\.?\s*)?(introduction|literature review|review of literature|background|material and methods|materials and methods|methodology|research methodology|research design|data sources and triangulation|literature search strategy|data analysis|data management and manual analysis|outcome of the methodological process|researcher bias control|results?|discussion|conclusion|reflection|acknowledgements?|conflict of interest|limitations?|case studies?.*)\s*:?\s*$/i;
-  const knownBengali =
-    /^(ভূমিকা|পূর্ববর্তী গবেষণার পর্যালোচনা|আলোচনা|উপসংহার|তথ্যসূত্র)\s*:?\s*$/i;
-  const numberedHeading = /^\d+(?:\.\d+)*\.?\s+.{3,120}$/;
-
-  if (knownEnglish.test(trimmed) || knownBengali.test(trimmed)) {
+  // 1. Explicit Bold markers (Very Robust)
+  if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
     return true;
   }
 
-  return numberedHeading.test(trimmed) && !/[.!?।]$/.test(trimmed);
+  // 2. Reject lines that look like LaTeX commands, table rows, or math
+  if (trimmed.includes('&') || trimmed.includes('\\\\') || trimmed.startsWith('\\') || trimmed.startsWith('$$')) {
+    return false;
+  }
+
+  // 3. Known Keywords (English)
+  const knownEnglish =
+    /^(?:\d+(?:\.\d+)*\.?\s*)?(abstract|summary|introduction|literature review|review of literature|background|material and methods|materials and methods|methodology|research methodology|research design|data sources|data analysis|results?|discussion|conclusion|reflection|acknowledgements?|conflict of interest|limitations?|references?|bibliography|case studies?.*)\s*:?\s*$/i;
+
+  if (knownEnglish.test(trimmed)) {
+    return true;
+  }
+
+  // 4. Structural Heuristics:
+  // - Starts with a number (e.g., 1.1)
+  // - OR is ALL CAPS and relatively short
+  // - AND doesn't end with typical sentence punctuation
+  const isNumbered = /^\d+(?:\.\d+)*\.?\s+.+$/.test(trimmed);
+  const isAllCaps = trimmed.length > 4 && trimmed === trimmed.toUpperCase() && /[A-Z]/.test(trimmed);
+  const endsWithPunctuation = /[.!?।]$/.test(trimmed);
+
+  return (isNumbered || isAllCaps) && !endsWithPunctuation;
 }
 
 function normalizeHeading(line) {
-  return line.trim().replace(/\s*:$/, '');
+  return line
+    .trim()
+    .replace(/^\*\*|\*\*$/g, '') // Remove Bold **
+    .replace(/\s*:$/, ''); // Remove trailing colon
 }
 
 function parseSections(text) {
@@ -64,7 +83,13 @@ function parseSections(text) {
     if (!current) {
       current = { heading: 'Introduction', content: [] };
     }
-    current.content.push(trimmed);
+
+    // Strip force normal markers if present
+    const contentLine = trimmed.startsWith('--') && trimmed.endsWith('--')
+      ? trimmed.slice(2, -2).trim()
+      : trimmed;
+
+    current.content.push(contentLine);
   }
 
   if (current) {
